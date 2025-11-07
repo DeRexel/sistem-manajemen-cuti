@@ -39,17 +39,6 @@ CREATE DATABASE sicuti_db;
 exit
 mysql -u root -p sicuti_db < database.sql
 
-# Configure database
-# Edit config/database.php sesuai setting MySQL
-
-# Set permissions
-chmod 755 public/uploads/
-chmod 755 public/uploads/signed_forms/
-chmod 755 public/uploads/employee_signatures/
-
-# Access application
-# http://localhost/sicuti
-```
 
 ## 🔐 Default Login
 - **Admin**: `admin` / `password`
@@ -72,18 +61,3 @@ sicuti/
 ## 🔄 Workflow
 1. **Pegawai**: Login → Ajukan Cuti → Download PDF → TTD → Upload → Submit
 2. **Admin**: Login → Review Pending → Proses → Upload TTD Atasan → Keputusan → Selesai
-
-## 🤝 Contributing
-1. Fork repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
-
-## 📝 License
-Distributed under MIT License. See `LICENSE` for more information.
-
-## 📞 Contact
-- **Developer**: [Your Name]
-- **Email**: [your.email@domain.com]
-- **Project Link**: [https://github.com/username/sicuti]
