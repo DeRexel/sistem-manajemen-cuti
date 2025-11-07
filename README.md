@@ -27,7 +27,7 @@ Sistem Manajemen Cuti Pegawai (SICUTI) adalah aplikasi web untuk mengelola penga
 ### Setup
 ```bash
 # Clone repository
-git clone <repository-url>
+git clone https://github.com/DeRexel/sistem-manajemen-cuti.git
 cd sicuti
 
 # Install dependencies
@@ -38,7 +38,7 @@ mysql -u root -p
 CREATE DATABASE sicuti_db;
 exit
 mysql -u root -p sicuti_db < database.sql
-
+```
 
 ## 🔐 Default Login
 - **Admin**: `admin` / `password`
