@@ -1,0 +1,22 @@
+{% set current_user = current_user|default('User') %}
+
+<header class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <div class="flex items-center">
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                    {% block page_title %}Dashboard{% endblock %}
+                </h2>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-gray-600"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">{{ current_user }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>

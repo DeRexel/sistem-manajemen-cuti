@@ -1,0 +1,42 @@
+# Vendor dependencies
+/vendor/
+
+# Composer files
+composer.lock
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Cache and logs
+/cache/
+/logs/
+*.log
+
+# Uploads and user files
+/public/uploads/*
+!/public/uploads/.gitkeep
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+/tmp/
+/temp/
+
+# Database files
+*.sqlite
+*.db
+
+# Config files with sensitive data
+/config/database.local.php
+/config/secrets.php

@@ -1,0 +1,125 @@
+{% extends "layouts/dashboard.twig" %}
+
+{% block title %}Ajukan Cuti - SICUTI{% endblock %}
+
+{% block page_title %}Ajukan Cuti Baru{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card p-6">
+        <form method="POST" action="/user/cuti/create" class="space-y-6">
+            <!-- Employee Info -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Data Pegawai</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Nama</label>
+                        <p class="mt-1 text-sm text-gray-900">{{ employee.nama }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">NIP</label>
+                        <p class="mt-1 text-sm text-gray-900">{{ employee.nip }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Jabatan</label>
+                        <p class="mt-1 text-sm text-gray-900">{{ employee.jabatan }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Unit Kerja</label>
+                        <p class="mt-1 text-sm text-gray-900">{{ employee.unit_kerja }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leave Type -->
+            <div>
+                <label for="jenis_cuti" class="block text-sm font-medium text-gray-700">Jenis Cuti</label>
+                <select id="jenis_cuti" name="jenis_cuti" required class="form-input mt-1">
+                    <option value="">Pilih Jenis Cuti</option>
+                    <option value="tahunan">Cuti Tahunan</option>
+                    <option value="besar">Cuti Besar</option>
+                    <option value="sakit">Cuti Sakit</option>
+                    <option value="melahirkan">Cuti Melahirkan</option>
+                    <option value="alasan_penting">Cuti Karena Alasan Penting</option>
+                    <option value="diluar_tanggungan">Cuti Diluar Tanggungan Negara</option>
+                </select>
+            </div>
+
+            <!-- Reason -->
+            <div>
+                <label for="alasan" class="block text-sm font-medium text-gray-700">Alasan Cuti</label>
+                <textarea id="alasan" name="alasan" rows="3" required class="form-input mt-1" placeholder="Jelaskan alasan pengajuan cuti..."></textarea>
+            </div>
+
+            <!-- Date Range -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="tanggal_mulai" class="block text-sm font-medium text-gray-700">Tanggal Mulai</label>
+                    <input type="date" id="tanggal_mulai" name="tanggal_mulai" required class="form-input mt-1">
+                </div>
+                <div>
+                    <label for="tanggal_selesai" class="block text-sm font-medium text-gray-700">Tanggal Selesai</label>
+                    <input type="date" id="tanggal_selesai" name="tanggal_selesai" required class="form-input mt-1">
+                </div>
+                <div>
+                    <label for="lama_hari" class="block text-sm font-medium text-gray-700">Lama Hari</label>
+                    <input type="number" id="lama_hari" name="lama_hari" readonly class="form-input mt-1 bg-gray-50">
+                </div>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="alamat_cuti" class="block text-sm font-medium text-gray-700">Alamat Selama Cuti</label>
+                    <textarea id="alamat_cuti" name="alamat_cuti" rows="3" required class="form-input mt-1" placeholder="Alamat lengkap selama menjalankan cuti..."></textarea>
+                </div>
+                <div>
+                    <label for="telp_cuti" class="block text-sm font-medium text-gray-700">Telepon</label>
+                    <input type="tel" id="telp_cuti" name="telp_cuti" class="form-input mt-1" placeholder="Nomor telepon yang bisa dihubungi">
+                </div>
+            </div>
+
+            <!-- Pejabat -->
+            <div>
+                <label for="pejabat_id" class="block text-sm font-medium text-gray-700">Pejabat Berwenang</label>
+                <select id="pejabat_id" name="pejabat_id" required class="form-input mt-1">
+                    <option value="">Pilih Pejabat</option>
+                    {% for pejabat in pejabat_list %}
+                    <option value="{{ pejabat.id }}">{{ pejabat.nama }} - {{ pejabat.jabatan }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Quota Info -->
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-blue-900 mb-2">Informasi Kuota Cuti</h4>
+                <div class="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <span class="text-blue-700">Sisa Cuti N-2:</span>
+                        <span class="font-medium">{{ employee.sisa_cuti_n2 }} hari</span>
+                    </div>
+                    <div>
+                        <span class="text-blue-700">Sisa Cuti N-1:</span>
+                        <span class="font-medium">{{ employee.sisa_cuti_n1 }} hari</span>
+                    </div>
+                    <div>
+                        <span class="text-blue-700">Sisa Cuti Tahun Ini:</span>
+                        <span class="font-medium">{{ employee.sisa_cuti_n }} hari</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end space-x-4">
+                <a href="/user/dashboard" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Batal
+                </a>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save mr-2"></i>
+                    Buat Pengajuan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

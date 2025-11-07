@@ -1,0 +1,17 @@
+{% set status_classes = {
+    'pending': 'status-pending',
+    'proses': 'status-proses', 
+    'selesai': 'status-selesai',
+    'cancel': 'status-cancel'
+} %}
+
+{% set status_labels = {
+    'pending': 'Pending',
+    'proses': 'Proses',
+    'selesai': 'Selesai', 
+    'cancel': 'Dibatalkan'
+} %}
+
+<span class="status-badge {{ status_classes[status] }}">
+    {{ status_labels[status] }}
+</span>

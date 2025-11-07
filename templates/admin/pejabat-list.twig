@@ -1,0 +1,138 @@
+{% extends "layouts/dashboard.twig" %}
+
+{% block title %}Kelola Pejabat - SICUTI{% endblock %}
+
+{% block page_title %}Kelola Data Pejabat{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <h3 class="text-lg font-medium text-gray-900">Daftar Pejabat</h3>
+        <button onclick="showAddModal()" class="btn-primary">
+            <i class="fas fa-plus mr-2"></i>
+            Tambah Pejabat
+        </button>
+    </div>
+
+    <div class="card overflow-hidden">
+        {% if pejabat_list %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NIP</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jabatan</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Kerja</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level Approval</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for pejabat in pejabat_list %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ pejabat.nama }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ pejabat.nip }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ pejabat.jabatan }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ pejabat.unit_kerja }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ pejabat.level_approval }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex space-x-2">
+                                <button onclick="editPejabat({{ pejabat.id }})" class="text-blue-600 hover:text-blue-900" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deletePejabat({{ pejabat.id }})" class="text-red-600 hover:text-red-900" title="Hapus">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <i class="fas fa-user-tie text-gray-400 text-4xl mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Belum Ada Data Pejabat</h3>
+            <p class="text-gray-500 mb-4">Tambahkan pejabat pertama untuk memulai.</p>
+            <button onclick="showAddModal()" class="btn-primary">
+                <i class="fas fa-plus mr-2"></i>
+                Tambah Pejabat Pertama
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Pejabat Modal -->
+<div id="addModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Tambah Pejabat Baru</h3>
+        
+        <form method="POST" action="/admin/pejabat/create" class="space-y-4">
+            <div>
+                <label for="nip" class="block text-sm font-medium text-gray-700">NIP</label>
+                <input type="text" id="nip" name="nip" required class="form-input mt-1">
+            </div>
+            
+            <div>
+                <label for="nama" class="block text-sm font-medium text-gray-700">Nama Lengkap</label>
+                <input type="text" id="nama" name="nama" required class="form-input mt-1">
+            </div>
+            
+            <div>
+                <label for="jabatan" class="block text-sm font-medium text-gray-700">Jabatan</label>
+                <input type="text" id="jabatan" name="jabatan" required class="form-input mt-1">
+            </div>
+            
+            <div>
+                <label for="unit_kerja" class="block text-sm font-medium text-gray-700">Unit Kerja</label>
+                <input type="text" id="unit_kerja" name="unit_kerja" class="form-input mt-1">
+            </div>
+            
+            <div>
+                <label for="level_approval" class="block text-sm font-medium text-gray-700">Level Approval</label>
+                <select id="level_approval" name="level_approval" class="form-input mt-1">
+                    <option value="1">Level 1</option>
+                    <option value="2">Level 2</option>
+                    <option value="3">Level 3</option>
+                </select>
+            </div>
+            
+            <div class="flex justify-end space-x-4 mt-6">
+                <button type="button" onclick="closeAddModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Batal
+                </button>
+                <button type="submit" class="btn-primary">
+                    Simpan Pejabat
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function showAddModal() {
+    document.getElementById('addModal').classList.remove('hidden');
+    document.getElementById('addModal').classList.add('flex');
+}
+
+function closeAddModal() {
+    document.getElementById('addModal').classList.add('hidden');
+    document.getElementById('addModal').classList.remove('flex');
+}
+
+function editPejabat(id) {
+    // Implement edit functionality
+    alert('Edit pejabat ID: ' + id);
+}
+
+function deletePejabat(id) {
+    if (confirm('Yakin ingin menghapus pejabat ini?')) {
+        // Implement delete functionality
+        alert('Delete pejabat ID: ' + id);
+    }
+}
+</script>
+{% endblock %}
