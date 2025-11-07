@@ -44,20 +44,6 @@ mysql -u root -p sicuti_db < database.sql
 - **Admin**: `admin` / `password`
 - **User**: `budi` / `password`
 
-## 📁 Struktur Project
-```
-sicuti/
-├── public/           # Web root & assets
-├── src/             # Application code
-│   ├── Controllers/ # Business logic
-│   ├── Models/      # Database models
-│   ├── Middleware/  # Auth & security
-│   └── Services/    # PDF generation
-├── templates/       # Twig templates
-├── config/          # Configuration
-└── database.sql     # Database schema
-```
-
 ## 🔄 Workflow
 1. **Pegawai**: Login → Ajukan Cuti → Download PDF → TTD → Upload → Submit
 2. **Admin**: Login → Review Pending → Proses → Upload TTD Atasan → Keputusan → Selesai
