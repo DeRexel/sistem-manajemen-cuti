@@ -1,0 +1,276 @@
+{% extends "layouts/dashboard.twig" %}
+
+{% block title %}Riwayat Cuti - SICUTI{% endblock %}
+
+{% block page_title %}Riwayat Semua Pengajuan Cuti{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <h3 class="text-lg font-medium text-gray-900">Riwayat Semua Pengajuan Cuti</h3>
+        <button onclick="showExportModal()" class="btn-primary">
+            <i class="fas fa-file-export mr-2"></i>
+            Export Laporan
+        </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="card p-4">
+        <h4 class="text-sm font-medium text-gray-900 mb-3">Filter</h4>
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tahun Mulai</label>
+                <select name="year_start" class="form-input">
+                    <option value="">Semua</option>
+                    {% for year in range(date().format('Y')-5, date().format('Y')) %}
+                    <option value="{{ year }}" {{ filters.year_start == year ? 'selected' : '' }}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tahun Akhir</label>
+                <select name="year_end" class="form-input">
+                    <option value="">Semua</option>
+                    {% for year in range(date().format('Y')-5, date().format('Y')) %}
+                    <option value="{{ year }}" {{ filters.year_end == year ? 'selected' : '' }}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Pegawai</label>
+                <select name="employee_id" class="form-input">
+                    <option value="">Semua Pegawai</option>
+                    {% for employee in employees %}
+                    <option value="{{ employee.id }}" {{ filters.employee_id == employee.id ? 'selected' : '' }}>{{ employee.nama }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select name="status" class="form-input">
+                    <option value="">Semua Status</option>
+                    <option value="pending" {{ filters.status == 'pending' ? 'selected' : '' }}>Pending</option>
+                    <option value="proses" {{ filters.status == 'proses' ? 'selected' : '' }}>Proses</option>
+                    <option value="selesai" {{ filters.status == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                    <option value="cancel" {{ filters.status == 'cancel' ? 'selected' : '' }}>Cancel</option>
+                </select>
+            </div>
+            <div class="md:col-span-4">
+                <button type="submit" class="btn-secondary mr-2">
+                    <i class="fas fa-filter mr-2"></i>
+                    Filter
+                </button>
+                <a href="/admin/cuti/history" class="btn-outline">
+                    <i class="fas fa-times mr-2"></i>
+                    Reset
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="card overflow-hidden">
+        {% if cuti_list %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pegawai</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Cuti</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Pengajuan</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Periode</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lama</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pejabat</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for cuti in cuti_list %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ cuti.employee_nama }}</div>
+                            <div class="text-sm text-gray-500">{{ cuti.employee_nip }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ cuti.jenis_cuti|title }}</div>
+                            <div class="text-sm text-gray-500">{{ cuti.alasan|slice(0, 30) }}{% if cuti.alasan|length > 30 %}...{% endif %}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ cuti.tanggal_pengajuan|date('d/m/Y') }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ cuti.tanggal_mulai|date('d/m/Y') }} - {{ cuti.tanggal_selesai|date('d/m/Y') }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ cuti.lama_hari }} hari
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% include 'components/status-badge.twig' with {'status': cuti.status, 'status_message': cuti.status_message} %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ cuti.pejabat_nama }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="previewDocument({{ cuti.id }})" class="text-purple-600 hover:text-purple-900" title="Preview Dokumen">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <i class="fas fa-inbox text-gray-400 text-4xl mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak Ada Data</h3>
+            <p class="text-gray-500">Tidak ada pengajuan cuti yang sesuai dengan filter.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div id="exportModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Export Laporan Riwayat Cuti</h3>
+            <button onclick="closeExportModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="exportForm" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Mulai:</label>
+                    <select id="exportYearStart" class="form-input w-full">
+                        <!-- Will be populated by JS -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Akhir:</label>
+                    <select id="exportYearEnd" class="form-input w-full">
+                        <!-- Will be populated by JS -->
+                    </select>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Pegawai:</label>
+                <select id="exportEmployee" class="form-input w-full">
+                    <option value="">Semua Pegawai</option>
+                    {% for employee in employees %}
+                    <option value="{{ employee.id }}">{{ employee.nama }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Status:</label>
+                <select id="exportStatus" class="form-input w-full">
+                    <option value="">Semua Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="proses">Proses</option>
+                    <option value="selesai">Selesai</option>
+                    <option value="cancel">Cancel</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Format Export:</label>
+                <select id="exportFormat" class="form-input w-full">
+                    <option value="pdf">PDF</option>
+                    <option value="excel">Excel</option>
+                </select>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="closeExportModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                    Batal
+                </button>
+                <button type="button" onclick="exportReport()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                    <i class="fas fa-download mr-2"></i>
+                    Export
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function previewDocument(cutiId) {
+    const modal = document.createElement('div');
+    modal.id = 'previewModal';
+    modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+    modal.innerHTML = `
+        <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-5/6 lg:w-4/5 shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Preview Dokumen Cuti</h3>
+                <button onclick="closePreviewModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <iframe id="documentFrame" src="/admin/cuti/preview/${cutiId}" class="w-full h-screen border rounded"></iframe>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function closePreviewModal() {
+    const modal = document.getElementById('previewModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function showExportModal() {
+    populateExportYearOptions();
+    document.getElementById('exportModal').classList.remove('hidden');
+}
+
+function closeExportModal() {
+    document.getElementById('exportModal').classList.add('hidden');
+}
+
+function populateExportYearOptions() {
+    const currentYear = new Date().getFullYear();
+    const yearStart = document.getElementById('exportYearStart');
+    const yearEnd = document.getElementById('exportYearEnd');
+    
+    yearStart.innerHTML = '';
+    yearEnd.innerHTML = '';
+    
+    for (let year = currentYear - 5; year <= currentYear; year++) {
+        const optionStart = new Option(year, year);
+        const optionEnd = new Option(year, year);
+        
+        if (year === currentYear - 1) optionStart.selected = true;
+        if (year === currentYear) optionEnd.selected = true;
+        
+        yearStart.appendChild(optionStart);
+        yearEnd.appendChild(optionEnd);
+    }
+}
+
+function exportReport() {
+    const yearStart = document.getElementById('exportYearStart').value;
+    const yearEnd = document.getElementById('exportYearEnd').value;
+    const employeeId = document.getElementById('exportEmployee').value;
+    const status = document.getElementById('exportStatus').value;
+    const format = document.getElementById('exportFormat').value;
+    
+    if (parseInt(yearStart) > parseInt(yearEnd)) {
+        alert('Tahun mulai tidak boleh lebih besar dari tahun akhir');
+        return;
+    }
+    
+    let url = `/admin/cuti/export?year_start=${yearStart}&year_end=${yearEnd}&format=${format}`;
+    if (employeeId) url += `&employee_id=${employeeId}`;
+    if (status) url += `&status=${status}`;
+    
+    window.open(url, '_blank');
+    closeExportModal();
+}
+</script>
+{% endblock %}

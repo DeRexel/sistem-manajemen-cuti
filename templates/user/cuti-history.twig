@@ -8,10 +8,16 @@
 <div class="space-y-6">
     <div class="flex justify-between items-center">
         <h3 class="text-lg font-medium text-gray-900">Semua Pengajuan Cuti</h3>
-        <a href="/user/cuti/create" class="btn-primary">
-            <i class="fas fa-plus mr-2"></i>
-            Ajukan Cuti Baru
-        </a>
+        <div class="flex space-x-3">
+            <button onclick="showExportModal()" class="btn-secondary">
+                <i class="fas fa-file-export mr-2"></i>
+                Export Laporan
+            </button>
+            <a href="/user/cuti/create" class="btn-primary">
+                <i class="fas fa-plus mr-2"></i>
+                Ajukan Cuti Baru
+            </a>
+        </div>
     </div>
 
     <div class="card overflow-hidden">
@@ -25,6 +31,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Periode Cuti</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lama</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">TTD</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pejabat</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
@@ -46,7 +53,14 @@
                             {{ cuti.lama_hari }} hari
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            {% include 'components/status-badge.twig' with {'status': cuti.status} %}
+                            {% include 'components/status-badge.twig' with {'status': cuti.status, 'status_message': cuti.status_message} %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            {% if cuti.signature_method is defined and cuti.signature_method == 'digital' %}
+                                <span class="text-blue-600"><i class="fas fa-signature"></i> Digital</span>
+                            {% else %}
+                                <span class="text-gray-600"><i class="fas fa-pen"></i> Manual</span>
+                            {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ cuti.pejabat_nama }}
@@ -54,19 +68,21 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-2">
                                 {% if cuti.form_path %}
-                                <a href="/user/cuti/download/{{ cuti.id }}" class="text-blue-600 hover:text-blue-900">
+                                <button onclick="previewDocument({{ cuti.id }})" class="text-purple-600 hover:text-purple-900" title="Preview Dokumen">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <a href="/user/cuti/download/{{ cuti.id }}" class="text-blue-600 hover:text-blue-900" title="Download">
                                     <i class="fas fa-download"></i>
                                 </a>
                                 {% endif %}
                                 
                                 {% if cuti.status == 'pending' and not cuti.form_signed_employee_path %}
-                                <button onclick="document.getElementById('upload-{{ cuti.id }}').click()" class="text-green-600 hover:text-green-900" title="Upload Form TTD">
+                                <button onclick="showUploadModal({{ cuti.id }})" class="text-green-600 hover:text-green-900" title="Upload Form TTD">
                                     <i class="fas fa-upload"></i>
                                 </button>
-                                <input type="file" id="upload-{{ cuti.id }}" accept=".pdf" style="display: none;" onchange="handleFileUpload('upload-{{ cuti.id }}', {{ cuti.id }}, 'employee')">
                                 {% endif %}
                                 
-                                {% if cuti.form_signed_employee_path and cuti.status == 'pending' %}
+                                {% if cuti.form_signed_employee_path %}
                                 <span class="text-green-600" title="Form sudah diupload">
                                     <i class="fas fa-check-circle"></i>
                                 </span>
@@ -91,4 +107,217 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Upload Modal -->
+<div id="uploadModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Preview dan Upload Formulir</h3>
+                <button onclick="closeUploadModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Pilih File PDF:</label>
+                <input type="file" id="pdfFileInput" accept=".pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+            </div>
+            
+            <div id="pdfPreview" class="mb-4 hidden">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">Preview:</h4>
+                <iframe id="pdfFrame" class="w-full h-96 border rounded"></iframe>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeUploadModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                    Batal
+                </button>
+                <button id="confirmUpload" onclick="confirmUpload()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400" disabled>
+                    Konfirmasi Upload
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Document Preview Modal -->
+<div id="previewModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-5/6 lg:w-4/5 shadow-lg rounded-md bg-white">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Preview Dokumen</h3>
+            <button onclick="closePreviewModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <iframe id="documentFrame" class="w-full h-screen border rounded"></iframe>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div id="exportModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Export Laporan Cuti</h3>
+            <button onclick="closeExportModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="exportForm" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Mulai:</label>
+                    <select id="yearStart" class="form-input w-full">
+                        <!-- Will be populated by JS -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Akhir:</label>
+                    <select id="yearEnd" class="form-input w-full">
+                        <!-- Will be populated by JS -->
+                    </select>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Format Export:</label>
+                <select id="exportFormat" class="form-input w-full">
+                    <option value="pdf">PDF</option>
+                    <option value="excel">Excel</option>
+                </select>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="closeExportModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                    Batal
+                </button>
+                <button type="button" onclick="exportReport()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                    <i class="fas fa-download mr-2"></i>
+                    Export
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let currentCutiId = null;
+
+function showUploadModal(cutiId) {
+    currentCutiId = cutiId;
+    document.getElementById('uploadModal').classList.remove('hidden');
+    document.getElementById('pdfFileInput').value = '';
+    document.getElementById('pdfPreview').classList.add('hidden');
+    document.getElementById('confirmUpload').disabled = true;
+}
+
+function closeUploadModal() {
+    document.getElementById('uploadModal').classList.add('hidden');
+    currentCutiId = null;
+}
+
+function previewDocument(cutiId) {
+    document.getElementById('documentFrame').src = `/user/cuti/preview/${cutiId}`;
+    document.getElementById('previewModal').classList.remove('hidden');
+}
+
+function closePreviewModal() {
+    document.getElementById('previewModal').classList.add('hidden');
+    document.getElementById('documentFrame').src = '';
+}
+
+function showExportModal() {
+    populateYearOptions();
+    document.getElementById('exportModal').classList.remove('hidden');
+}
+
+function closeExportModal() {
+    document.getElementById('exportModal').classList.add('hidden');
+}
+
+function populateYearOptions() {
+    const currentYear = new Date().getFullYear();
+    const yearStart = document.getElementById('yearStart');
+    const yearEnd = document.getElementById('yearEnd');
+    
+    yearStart.innerHTML = '';
+    yearEnd.innerHTML = '';
+    
+    for (let year = currentYear - 5; year <= currentYear; year++) {
+        const optionStart = new Option(year, year);
+        const optionEnd = new Option(year, year);
+        
+        if (year === currentYear - 1) optionStart.selected = true;
+        if (year === currentYear) optionEnd.selected = true;
+        
+        yearStart.appendChild(optionStart);
+        yearEnd.appendChild(optionEnd);
+    }
+}
+
+function exportReport() {
+    const yearStart = document.getElementById('yearStart').value;
+    const yearEnd = document.getElementById('yearEnd').value;
+    const format = document.getElementById('exportFormat').value;
+    
+    if (parseInt(yearStart) > parseInt(yearEnd)) {
+        alert('Tahun mulai tidak boleh lebih besar dari tahun akhir');
+        return;
+    }
+    
+    const url = `/user/cuti/export?year_start=${yearStart}&year_end=${yearEnd}&format=${format}`;
+    window.open(url, '_blank');
+    closeExportModal();
+}
+
+document.getElementById('pdfFileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file && file.type === 'application/pdf') {
+        const fileURL = URL.createObjectURL(file);
+        document.getElementById('pdfFrame').src = fileURL;
+        document.getElementById('pdfPreview').classList.remove('hidden');
+        document.getElementById('confirmUpload').disabled = false;
+    } else {
+        document.getElementById('pdfPreview').classList.add('hidden');
+        document.getElementById('confirmUpload').disabled = true;
+    }
+});
+
+function confirmUpload() {
+    const fileInput = document.getElementById('pdfFileInput');
+    const file = fileInput.files[0];
+    
+    if (!file || !currentCutiId) return;
+    
+    const formData = new FormData();
+    formData.append('signed_form', file);
+    
+    document.getElementById('confirmUpload').disabled = true;
+    document.getElementById('confirmUpload').textContent = 'Uploading...';
+    
+    fetch(`/user/cuti/upload-signed/${currentCutiId}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('File berhasil diupload');
+            closeUploadModal();
+            location.reload();
+        } else {
+            alert('Error upload file');
+            document.getElementById('confirmUpload').disabled = false;
+            document.getElementById('confirmUpload').textContent = 'Konfirmasi Upload';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('File berhasil diupload');
+        closeUploadModal();
+        location.reload();
+    });
+}
+</script>
 {% endblock %}

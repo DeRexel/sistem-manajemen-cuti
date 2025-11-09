@@ -1,13 +1,13 @@
 {% extends "layouts/dashboard.twig" %}
 
-{% block title %}Ajukan Cuti - SICUTI{% endblock %}
+{% block title %}Ajukan Cuti - SICLE{% endblock %}
 
 {% block page_title %}Ajukan Cuti Baru{% endblock %}
 
 {% block dashboard_content %}
 <div class="max-w-4xl mx-auto">
     <div class="card p-6">
-        <form method="POST" action="/user/cuti/create" class="space-y-6">
+        <form method="POST" action="/user/cuti/create" class="space-y-6" id="cutiForm">
             <!-- Employee Info -->
             <div class="bg-gray-50 p-4 rounded-lg">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Data Pegawai</h3>
@@ -90,6 +90,68 @@
                 </select>
             </div>
 
+            <!-- Signature Method -->
+            <div class="bg-yellow-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-yellow-900 mb-3">Metode Tanda Tangan</h4>
+                <div class="space-y-3">
+                    {% if employee.use_digital_signature is defined and employee.digital_signature_path is defined and employee.use_digital_signature and employee.digital_signature_path %}
+                    <!-- User sudah punya TTD Digital -->
+                    <label class="flex items-center">
+                        <input type="radio" name="signature_method" value="digital" class="mr-2" checked>
+                        <span class="text-sm text-green-700"><i class="fas fa-check-circle mr-1"></i>Gunakan Tanda Tangan Digital (Otomatis submit)</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="signature_method" value="manual" class="mr-2">
+                        <span class="text-sm">Tanda Tangan Manual (Download → Cetak → TTD → Upload)</span>
+                    </label>
+                    <div class="mt-2 p-3 bg-green-50 rounded">
+                        <p class="text-sm text-green-700"><i class="fas fa-signature mr-1"></i>Tanda tangan digital tersedia. <a href="#" onclick="showSignatureUpload()" class="underline">Ganti tanda tangan</a> jika diperlukan.</p>
+                    </div>
+                    {% else %}
+                    <!-- User belum punya TTD Digital -->
+                    <label class="flex items-center">
+                        <input type="radio" name="signature_method" value="manual" class="mr-2" checked>
+                        <span class="text-sm">Tanda Tangan Manual (DDownload → Cetak → TTD → Upload)</span>
+                    </label>
+                    <div class="mt-2 p-3 bg-blue-50 rounded">
+                        <p class="text-sm text-blue-700">Belum ada tanda tangan digital. <a href="#" onclick="showSignatureUpload()" class="underline">Upload tanda tangan digital</a> untuk kemudahan di masa depan.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Digital Signature Upload (Hidden by default) -->
+            <div id="signatureUpload" class="hidden bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-900 mb-3">
+                    {% if employee.digital_signature_path is defined and employee.digital_signature_path %}
+                        Ganti Tanda Tangan Digital
+                    {% else %}
+                        Upload Tanda Tangan Digital
+                    {% endif %}
+                </h4>
+                <div class="space-y-3">
+                    <p class="text-xs text-gray-600">Format: PNG/JPG, akan otomatis diresize ke 160x80px</p>
+                    {% if employee.digital_signature_path is defined and employee.digital_signature_path %}
+                    <div class="p-2 bg-yellow-50 rounded text-xs text-yellow-700">
+                        <i class="fas fa-info-circle mr-1"></i>Anda sudah memiliki tanda tangan digital. Upload file baru akan mengganti yang lama.
+                    </div>
+                    {% endif %}
+                    <input type="file" id="signatureFile" accept="image/png,image/jpeg,image/jpg" class="form-input">
+                    <div id="uploadError" class="hidden p-2 bg-red-50 text-red-700 text-sm rounded"></div>
+                    <div id="uploadSuccess" class="hidden p-2 bg-green-50 text-green-700 text-sm rounded"></div>
+                    <div class="flex space-x-2">
+                        <button type="button" onclick="uploadSignature()" class="btn-secondary text-sm" id="uploadBtn">
+                            {% if employee.digital_signature_path is defined and employee.digital_signature_path %}
+                                Ganti
+                            {% else %}
+                                Upload
+                            {% endif %}
+                        </button>
+                        <button type="button" onclick="hideSignatureUpload()" class="px-3 py-1 text-sm border rounded">Batal</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Quota Info -->
             <div class="bg-blue-50 p-4 rounded-lg">
                 <h4 class="text-sm font-medium text-blue-900 mb-2">Informasi Kuota Cuti</h4>
@@ -114,12 +176,150 @@
                 <a href="/user/dashboard" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
                     Batal
                 </a>
-                <button type="submit" class="btn-primary">
+                <button type="submit" class="btn-primary" id="submitBtn">
                     <i class="fas fa-save mr-2"></i>
-                    Buat Pengajuan
+                    <span id="submitText">Buat Pengajuan</span>
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+function showSignatureUpload() {
+    document.getElementById('signatureUpload').classList.remove('hidden');
+}
+
+function hideSignatureUpload() {
+    document.getElementById('signatureUpload').classList.add('hidden');
+}
+
+function uploadSignature() {
+    const fileInput = document.getElementById('signatureFile');
+    const errorDiv = document.getElementById('uploadError');
+    const successDiv = document.getElementById('uploadSuccess');
+    
+    // Hide previous messages
+    errorDiv.classList.add('hidden');
+    successDiv.classList.add('hidden');
+    
+    if (!fileInput.files[0]) {
+        showError('Pilih file tanda tangan terlebih dahulu');
+        return;
+    }
+    
+    const file = fileInput.files[0];
+    if (!file.type.match(/image\/(png|jpeg|jpg)/)) {
+        showError('Format file harus PNG atau JPG');
+        return;
+    }
+    
+    if (file.size > 2 * 1024 * 1024) {
+        showError('Ukuran file maksimal 2MB');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('signature', file);
+    
+    // Show loading
+    const uploadBtn = document.getElementById('uploadBtn');
+    const originalText = uploadBtn.textContent;
+    uploadBtn.textContent = 'Uploading...';
+    uploadBtn.disabled = true;
+    
+    fetch('/user/cuti/upload-signature', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('Tanda tangan berhasil diupload dan diresize ke 160x80px!');
+            // Auto-enable digital signature option and reload after 2 seconds
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            showError(data.error || 'Gagal upload tanda tangan. Silakan coba lagi.');
+        }
+    })
+    .catch(error => {
+        showError('Error: ' + error.message);
+    })
+    .finally(() => {
+        uploadBtn.textContent = originalText;
+        uploadBtn.disabled = false;
+    });
+}
+
+function showError(message) {
+    const errorDiv = document.getElementById('uploadError');
+    errorDiv.textContent = message;
+    errorDiv.classList.remove('hidden');
+}
+
+function showSuccess(message) {
+    const successDiv = document.getElementById('uploadSuccess');
+    successDiv.textContent = message;
+    successDiv.classList.remove('hidden');
+}
+
+// Prevent double submission
+let isSubmitting = false;
+
+// Update submit button text based on signature method
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('cutiForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const signatureRadios = document.querySelectorAll('input[name="signature_method"]');
+    
+    // Prevent double submission
+    form.addEventListener('submit', function(e) {
+        if (isSubmitting) {
+            e.preventDefault();
+            return false;
+        }
+        
+        isSubmitting = true;
+        submitBtn.disabled = true;
+        
+        const selectedMethod = document.querySelector('input[name="signature_method"]:checked')?.value;
+        if (selectedMethod === 'digital') {
+            submitText.textContent = 'Memproses...';
+        } else {
+            submitText.textContent = 'Membuat...';
+        }
+    });
+    
+    signatureRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'digital') {
+                submitText.textContent = 'Submit Langsung';
+            } else {
+                submitText.textContent = 'Buat Pengajuan';
+            }
+        });
+    });
+    
+    // Calculate days automatically
+    const startDate = document.getElementById('tanggal_mulai');
+    const endDate = document.getElementById('tanggal_selesai');
+    const lamaHari = document.getElementById('lama_hari');
+    
+    function calculateDays() {
+        if (startDate.value && endDate.value) {
+            const start = new Date(startDate.value);
+            const end = new Date(endDate.value);
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            lamaHari.value = diffDays;
+        }
+    }
+    
+    startDate.addEventListener('change', calculateDays);
+    endDate.addEventListener('change', calculateDays);
+});
+</script>
 {% endblock %}

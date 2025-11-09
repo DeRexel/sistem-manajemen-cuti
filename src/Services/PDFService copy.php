@@ -137,7 +137,7 @@ class PDFService {
             <tr>
                 <td colspan="2"></td>
                 <td colspan="2" style="text-align:center; height:100px;">
-                    ' . $data['pejabat_jabatan'] . '<br><br><br><br><br>
+                    ' . $data['pejabat_jabatan'] . '<br><br><br><br><br><br><br>
                     ' . $data['pejabat_nama'] . '<br>
                     NIP. ' . $data['pejabat_nip'] . '
                 </td>
@@ -296,7 +296,7 @@ class PDFService {
             <tr>
                 <td colspan="2"></td>
                 <td colspan="2" style="text-align:center; height:100px;">
-                    ' . $data['pejabat_jabatan'] . '<br><br><br><br><br>
+                    ' . $data['pejabat_jabatan'] . '<br><br><br><br><br><br><br>
                     ' . $data['pejabat_nama'] . '<br>
                     NIP. ' . $data['pejabat_nip'] . '
                 </td>
