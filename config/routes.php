@@ -23,7 +23,9 @@ return function ($app) {
         $group->post('/cuti/create', [CutiController::class, 'create']);
         $group->get('/cuti/download/{id}', [CutiController::class, 'downloadPDF']);
         $group->get('/cuti/preview/{id}', [CutiController::class, 'previewPDF']);
+        $group->get('/cuti/preview-berkas/{id}', [CutiController::class, 'previewBerkas']);
         $group->post('/cuti/upload-signed/{id}', [CutiController::class, 'uploadSigned']);
+        $group->post('/cuti/upload-berkas/{id}', [CutiController::class, 'uploadBerkasTambahan']);
         $group->post('/cuti/submit/{id}', [CutiController::class, 'submit']);
         $group->get('/cuti/history', [CutiController::class, 'history']);
         $group->post('/cuti/upload-signature', [CutiController::class, 'uploadSignature']);
@@ -34,7 +36,6 @@ return function ($app) {
         
         // Export
         $group->get('/cuti/export', [CutiController::class, 'exportReport']);
-        
     })->add(AuthMiddleware::class)->add(new RoleMiddleware('user'));
 
     // Account settings (Protected - both user and admin)
@@ -54,6 +55,7 @@ return function ($app) {
         $group->get('/cuti/history', [AdminController::class, 'historyList']);
         $group->get('/cuti/export', [AdminController::class, 'exportHistory']);
         $group->get('/cuti/preview/{id}', [AdminController::class, 'previewPDF']);
+        $group->get('/cuti/preview-berkas/{id}', [AdminController::class, 'previewBerkas']);
         $group->get('/cuti/{id}/detail', [AdminController::class, 'getDetail']);
         $group->post('/cuti/{id}/status', [AdminController::class, 'updateStatus']);
         $group->post('/cuti/{id}/upload-atasan', [AdminController::class, 'uploadAtasanSigned']);

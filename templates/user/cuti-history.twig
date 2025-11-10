@@ -1,6 +1,6 @@
 {% extends "layouts/dashboard.twig" %}
 
-{% block title %}Riwayat Cuti - SICUTI{% endblock %}
+{% block title %}Riwayat Cuti - SICLE{% endblock %}
 
 {% block page_title %}Riwayat Pengajuan Cuti{% endblock %}
 
@@ -82,6 +82,18 @@
                                 </button>
                                 {% endif %}
                                 
+                                {% if cuti.berkas_tambahan_required is defined and cuti.berkas_tambahan_required and not cuti.berkas_tambahan_path %}
+                                <button onclick="showBerkasModal({{ cuti.id }})" class="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded hover:bg-orange-200" title="Upload Berkas Tambahan">
+                                    <i class="fas fa-file-upload mr-1"></i>Upload
+                                </button>
+                                {% endif %}
+                                
+                                {% if cuti.berkas_tambahan_path is defined and cuti.berkas_tambahan_path %}
+                                <button onclick="previewBerkas({{ cuti.id }})" class="text-blue-600 hover:text-blue-900" title="Preview Berkas Tambahan">
+                                    <i class="fas fa-file-alt"></i>
+                                </button>
+                                {% endif %}
+                                
                                 {% if cuti.form_signed_employee_path %}
                                 <span class="text-green-600" title="Form sudah diupload">
                                     <i class="fas fa-check-circle"></i>
@@ -135,6 +147,41 @@
                 </button>
                 <button id="confirmUpload" onclick="confirmUpload()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400" disabled>
                     Konfirmasi Upload
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Berkas Tambahan Modal -->
+<div id="berkasModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Upload Berkas Tambahan</h3>
+                <button onclick="closeBerkasModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="mb-4 p-3 bg-yellow-50 rounded">
+                <p class="text-sm text-yellow-800">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Upload berkas pendukung sesuai jenis cuti yang diajukan (PDF, JPG, PNG)
+                </p>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Pilih File:</label>
+                <input type="file" id="berkasFileInput" accept=".pdf,.jpg,.jpeg,.png" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100">
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeBerkasModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                    Batal
+                </button>
+                <button id="confirmBerkasUpload" onclick="confirmBerkasUpload()" class="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:bg-gray-400" disabled>
+                    Upload Berkas
                 </button>
             </div>
         </div>
@@ -203,6 +250,7 @@
 
 <script>
 let currentCutiId = null;
+let currentBerkasId = null;
 
 function showUploadModal(cutiId) {
     currentCutiId = cutiId;
@@ -217,6 +265,18 @@ function closeUploadModal() {
     currentCutiId = null;
 }
 
+function showBerkasModal(cutiId) {
+    currentBerkasId = cutiId;
+    document.getElementById('berkasModal').classList.remove('hidden');
+    document.getElementById('berkasFileInput').value = '';
+    document.getElementById('confirmBerkasUpload').disabled = true;
+}
+
+function closeBerkasModal() {
+    document.getElementById('berkasModal').classList.add('hidden');
+    currentBerkasId = null;
+}
+
 function previewDocument(cutiId) {
     document.getElementById('documentFrame').src = `/user/cuti/preview/${cutiId}`;
     document.getElementById('previewModal').classList.remove('hidden');
@@ -225,6 +285,11 @@ function previewDocument(cutiId) {
 function closePreviewModal() {
     document.getElementById('previewModal').classList.add('hidden');
     document.getElementById('documentFrame').src = '';
+}
+
+function previewBerkas(cutiId) {
+    document.getElementById('documentFrame').src = `/user/cuti/preview-berkas/${cutiId}`;
+    document.getElementById('previewModal').classList.remove('hidden');
 }
 
 function showExportModal() {
@@ -284,6 +349,15 @@ document.getElementById('pdfFileInput').addEventListener('change', function(e) {
     }
 });
 
+document.getElementById('berkasFileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        document.getElementById('confirmBerkasUpload').disabled = false;
+    } else {
+        document.getElementById('confirmBerkasUpload').disabled = true;
+    }
+});
+
 function confirmUpload() {
     const fileInput = document.getElementById('pdfFileInput');
     const file = fileInput.files[0];
@@ -316,6 +390,42 @@ function confirmUpload() {
         console.error('Error:', error);
         alert('File berhasil diupload');
         closeUploadModal();
+        location.reload();
+    });
+}
+
+function confirmBerkasUpload() {
+    const fileInput = document.getElementById('berkasFileInput');
+    const file = fileInput.files[0];
+    
+    if (!file || !currentBerkasId) return;
+    
+    const formData = new FormData();
+    formData.append('berkas_tambahan', file);
+    
+    document.getElementById('confirmBerkasUpload').disabled = true;
+    document.getElementById('confirmBerkasUpload').textContent = 'Uploading...';
+    
+    fetch(`/user/cuti/upload-berkas/${currentBerkasId}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Berkas tambahan berhasil diupload');
+            closeBerkasModal();
+            location.reload();
+        } else {
+            alert('Error upload berkas: ' + (data.error || 'Unknown error'));
+            document.getElementById('confirmBerkasUpload').disabled = false;
+            document.getElementById('confirmBerkasUpload').textContent = 'Upload Berkas';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Berkas tambahan berhasil diupload');
+        closeBerkasModal();
         location.reload();
     });
 }
