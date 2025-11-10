@@ -27,6 +27,34 @@ class PDFService {
         // Content
         $pdf->SetFont('helvetica', '', 9);
         
+        // Calculate quota usage for cuti tahunan
+        $diambil_n1 = 0;
+        $diambil_n = 0;
+        $sisa_n1 = $data['sisa_cuti_n1'];
+        $sisa_n = $data['sisa_cuti_n'];
+        
+        if ($data['jenis_cuti'] == 'tahunan') {
+            $lama_cuti = $data['lama_hari'];
+            
+            // First use N-1 quota
+            if ($sisa_n1 > 0) {
+                $diambil_n1 = min($lama_cuti, $sisa_n1);
+                $sisa_n1 = $sisa_n1 - $diambil_n1;
+                $lama_cuti = $lama_cuti - $diambil_n1;
+            }
+            
+            // Then use N quota
+            if ($lama_cuti > 0) {
+                $diambil_n = min($lama_cuti, $sisa_n);
+                $sisa_n = $sisa_n - $diambil_n;
+            }
+        }
+        
+        $masa_kerja_text = $data['masa_kerja_tahun'] . ' Tahun';
+        if (isset($data['masa_kerja_bulan']) && $data['masa_kerja_bulan'] > 0) {
+            $masa_kerja_text .= ' ' . $data['masa_kerja_bulan'] . ' Bulan';
+        }
+        
         // Section I - Data Pegawai
         $html = '
         <div style="width:100%;">
@@ -42,7 +70,7 @@ class PDFService {
                 <td width="15%">Jabatan</td>
                 <td width="35%">' . $data['employee_jabatan'] . '</td>
                 <td width="15%">Masa Kerja</td>
-                <td width="35%">' . $data['masa_kerja_tahun'] . ' Tahun</td>
+                <td width="35%">' . $masa_kerja_text . '</td>
             </tr>
             <tr>
                 <td width="15%">Unit Kerja</td>
@@ -94,10 +122,10 @@ class PDFService {
                 <td width="50%" style="vertical-align:top;">
                     <b>1. CUTI TAHUNAN</b><br>
                     <table border="1" cellpadding="2" width="100%">
-                        <tr style="text-align:center;"><td>Tahun</td><td>Sisa</td><td>Keterangan</td></tr>
-                        <tr style="text-align:center;"><td>N-2</td><td>' . $data['sisa_cuti_n2'] . '</td><td></td></tr>
-                        <tr style="text-align:center;"><td>N-1</td><td>' . $data['sisa_cuti_n1'] . '</td><td></td></tr>
-                        <tr style="text-align:center;"><td>N</td><td>' . $data['sisa_cuti_n'] . '</td><td></td></tr>
+                        <tr style="text-align:center;"><td>Tahun</td><td>Lama</td><td>Diambil</td><td>Sisa</td></tr>
+                        <tr style="text-align:center;"><td>N-2</td><td>' . $data['sisa_cuti_n2'] . '</td><td>0</td><td>' . $data['sisa_cuti_n2'] . '</td></tr>
+                        <tr style="text-align:center;"><td>N-1</td><td>' . $data['sisa_cuti_n1'] . '</td><td>' . $diambil_n1 . '</td><td>' . $sisa_n1 . '</td></tr>
+                        <tr style="text-align:center;"><td>N</td><td>' . $data['sisa_cuti_n'] . '</td><td>' . $diambil_n . '</td><td>' . $sisa_n . '</td></tr>
                     </table>
                 </td>
                 <td width="50%" style="vertical-align:top;">
@@ -114,7 +142,7 @@ class PDFService {
         
         <table border="1" cellpadding="3" width="100%">
             <tr><td colspan="2" style="background-color:#f0f0f0;"><b>VI. ALAMAT SELAMA MENJALANKAN CUTI</b></td></tr>
-            <tr><td colspan="2">' . $data['alamat_cuti'] . '</td></tr>
+            <tr><td colspan="2">' . nl2br($data['alamat_cuti']) . '</td></tr>
             <tr><td width="70%"></td><td width="30%">Telp. ' . $data['telp_cuti'] . '</td></tr>
             <tr>
                 <td></td>
@@ -173,6 +201,34 @@ class PDFService {
         // Content with digital signature
         $pdf->SetFont('helvetica', '', 9);
         
+        // Calculate quota usage for cuti tahunan
+        $diambil_n1 = 0;
+        $diambil_n = 0;
+        $sisa_n1 = $data['sisa_cuti_n1'];
+        $sisa_n = $data['sisa_cuti_n'];
+        
+        if ($data['jenis_cuti'] == 'tahunan') {
+            $lama_cuti = $data['lama_hari'];
+            
+            // First use N-1 quota
+            if ($sisa_n1 > 0) {
+                $diambil_n1 = min($lama_cuti, $sisa_n1);
+                $sisa_n1 = $sisa_n1 - $diambil_n1;
+                $lama_cuti = $lama_cuti - $diambil_n1;
+            }
+            
+            // Then use N quota
+            if ($lama_cuti > 0) {
+                $diambil_n = min($lama_cuti, $sisa_n);
+                $sisa_n = $sisa_n - $diambil_n;
+            }
+        }
+        
+        $masa_kerja_text = $data['masa_kerja_tahun'] . ' Tahun';
+        if (isset($data['masa_kerja_bulan']) && $data['masa_kerja_bulan'] > 0) {
+            $masa_kerja_text .= ' ' . $data['masa_kerja_bulan'] . ' Bulan';
+        }
+        
         // Prepare signature image
         $signatureHtml = '';
         $digitalText = '';
@@ -199,7 +255,7 @@ class PDFService {
                 <td width="15%">Jabatan</td>
                 <td width="35%">' . $data['employee_jabatan'] . '</td>
                 <td width="15%">Masa Kerja</td>
-                <td width="35%">' . $data['masa_kerja_tahun'] . ' Tahun</td>
+                <td width="35%">' . $masa_kerja_text . '</td>
             </tr>
             <tr>
                 <td width="15%">Unit Kerja</td>
@@ -251,10 +307,10 @@ class PDFService {
                 <td width="50%" style="vertical-align:top;">
                     <b>1. CUTI TAHUNAN</b><br>
                     <table border="1" cellpadding="2" width="100%">
-                        <tr style="text-align:center;"><td>Tahun</td><td>Sisa</td><td>Keterangan</td></tr>
-                        <tr style="text-align:center;"><td>N-2</td><td>' . $data['sisa_cuti_n2'] . '</td><td></td></tr>
-                        <tr style="text-align:center;"><td>N-1</td><td>' . $data['sisa_cuti_n1'] . '</td><td></td></tr>
-                        <tr style="text-align:center;"><td>N</td><td>' . $data['sisa_cuti_n'] . '</td><td></td></tr>
+                        <tr style="text-align:center;"><td>Tahun</td><td>Lama</td><td>Diambil</td><td>Sisa</td></tr>
+                        <tr style="text-align:center;"><td>N-2</td><td>' . $data['sisa_cuti_n2'] . '</td><td>0</td><td>' . $data['sisa_cuti_n2'] . '</td></tr>
+                        <tr style="text-align:center;"><td>N-1</td><td>' . $data['sisa_cuti_n1'] . '</td><td>' . $diambil_n1 . '</td><td>' . $sisa_n1 . '</td></tr>
+                        <tr style="text-align:center;"><td>N</td><td>' . $data['sisa_cuti_n'] . '</td><td>' . $diambil_n . '</td><td>' . $sisa_n . '</td></tr>
                     </table>
                 </td>
                 <td width="50%" style="vertical-align:top;">
@@ -271,7 +327,7 @@ class PDFService {
         
         <table border="1" cellpadding="3" width="100%">
             <tr><td colspan="2" style="background-color:#f0f0f0;"><b>VI. ALAMAT SELAMA MENJALANKAN CUTI</b></td></tr>
-            <tr><td colspan="2">' . $data['alamat_cuti'] . '</td></tr>
+            <tr><td colspan="2">' . nl2br($data['alamat_cuti']) . '</td></tr>
             <tr><td width="70%"></td><td width="30%">Telp. ' . $data['telp_cuti'] . '</td></tr>
             <tr>
                 <td></td>

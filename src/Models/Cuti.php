@@ -12,18 +12,21 @@ class Cuti {
     }
 
     public function create($data) {
-        // Check if signature_method column exists
         try {
             $stmt = $this->db->prepare("
                 INSERT INTO cuti (employee_id, jenis_cuti, alasan, tanggal_mulai, tanggal_selesai, 
-                                lama_hari, alamat_cuti, telp_cuti, tanggal_pengajuan, pejabat_id, signature_method)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                lama_hari, alamat_cuti, telp_cuti, tanggal_pengajuan, pejabat_id, 
+                                signature_method, berkas_tambahan_required, kuota_source, kuota_breakdown)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->execute([
                 $data['employee_id'], $data['jenis_cuti'], $data['alasan'],
                 $data['tanggal_mulai'], $data['tanggal_selesai'], $data['lama_hari'],
                 $data['alamat_cuti'], $data['telp_cuti'], $data['tanggal_pengajuan'], 
-                $data['pejabat_id'], $data['signature_method'] ?? 'manual'
+                $data['pejabat_id'], $data['signature_method'] ?? 'manual',
+                $data['berkas_tambahan_required'] ?? false,
+                $data['kuota_source'] ?? 'n',
+                $data['kuota_breakdown'] ?? null
             ]);
         } catch (\PDOException $e) {
             // Fallback for old database schema
@@ -42,31 +45,17 @@ class Cuti {
     }
 
     public function findById($id) {
-        try {
-            $stmt = $this->db->prepare("
-                SELECT c.*, e.nama as employee_nama, e.nip as employee_nip, 
-                       e.jabatan as employee_jabatan, e.unit_kerja as employee_unit,
-                       e.masa_kerja_tahun, e.sisa_cuti_n2, e.sisa_cuti_n1, e.sisa_cuti_n,
-                       e.digital_signature_path, e.use_digital_signature,
-                       p.nama as pejabat_nama, p.jabatan as pejabat_jabatan, p.nip as pejabat_nip
-                FROM cuti c
-                JOIN employees e ON c.employee_id = e.id
-                LEFT JOIN pejabat p ON c.pejabat_id = p.id
-                WHERE c.id = ?
-            ");
-        } catch (\PDOException $e) {
-            // Fallback for old database schema
-            $stmt = $this->db->prepare("
-                SELECT c.*, e.nama as employee_nama, e.nip as employee_nip, 
-                       e.jabatan as employee_jabatan, e.unit_kerja as employee_unit,
-                       e.masa_kerja_tahun, e.sisa_cuti_n2, e.sisa_cuti_n1, e.sisa_cuti_n,
-                       p.nama as pejabat_nama, p.jabatan as pejabat_jabatan, p.nip as pejabat_nip
-                FROM cuti c
-                JOIN employees e ON c.employee_id = e.id
-                LEFT JOIN pejabat p ON c.pejabat_id = p.id
-                WHERE c.id = ?
-            ");
-        }
+        $stmt = $this->db->prepare("
+            SELECT c.*, e.nama as employee_nama, e.nip as employee_nip, 
+                   e.jabatan as employee_jabatan, e.unit_kerja as employee_unit,
+                   e.masa_kerja_tahun, e.masa_kerja_bulan, e.sisa_cuti_n2, e.sisa_cuti_n1, e.sisa_cuti_n,
+                   e.digital_signature_path, e.use_digital_signature,
+                   p.nama as pejabat_nama, p.jabatan as pejabat_jabatan, p.nip as pejabat_nip
+            FROM cuti c
+            JOIN employees e ON c.employee_id = e.id
+            LEFT JOIN pejabat p ON c.pejabat_id = p.id
+            WHERE c.id = ?
+        ");
         $stmt->execute([$id]);
         return $stmt->fetch();
     }
@@ -169,6 +158,15 @@ class Cuti {
         return $stmt->execute([$path, $id]);
     }
 
+    public function updateBerkasTambahanPath($id, $path) {
+        try {
+            $stmt = $this->db->prepare("UPDATE cuti SET berkas_tambahan_path = ? WHERE id = ?");
+            return $stmt->execute([$path, $id]);
+        } catch (\PDOException $e) {
+            return true; // Ignore if column doesn't exist
+        }
+    }
+
     public function updatePersetujuanAtasan($id, $persetujuan, $catatan = null) {
         $stmt = $this->db->prepare("
             UPDATE cuti SET persetujuan_atasan = ?, catatan_atasan = ? WHERE id = ?
@@ -234,5 +232,47 @@ class Cuti {
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll();
+    }
+
+    public function getConflictingLeave($employeeId, $startDate, $endDate) {
+        $stmt = $this->db->prepare("
+            SELECT * FROM cuti 
+            WHERE employee_id = ? 
+            AND status IN ('proses', 'selesai')
+            AND (
+                (tanggal_mulai <= ? AND tanggal_selesai >= ?) OR
+                (tanggal_mulai <= ? AND tanggal_selesai >= ?) OR
+                (tanggal_mulai >= ? AND tanggal_selesai <= ?)
+            )
+        ");
+        $stmt->execute([$employeeId, $startDate, $startDate, $endDate, $endDate, $startDate, $endDate]);
+        return $stmt->fetchAll();
+    }
+
+    public function getCutiBesarThisYear($employeeId) {
+        $year = date('Y');
+        $stmt = $this->db->prepare("
+            SELECT * FROM cuti 
+            WHERE employee_id = ? 
+            AND jenis_cuti = 'besar'
+            AND YEAR(tanggal_pengajuan) = ?
+            AND status IN ('proses', 'selesai')
+        ");
+        $stmt->execute([$employeeId, $year]);
+        return $stmt->fetch();
+    }
+
+    public function getCutiTahunanThisYear($employeeId) {
+        $year = date('Y');
+        $stmt = $this->db->prepare("
+            SELECT SUM(lama_hari) as total_days FROM cuti 
+            WHERE employee_id = ? 
+            AND jenis_cuti = 'tahunan'
+            AND YEAR(tanggal_pengajuan) = ?
+            AND status IN ('proses', 'selesai')
+        ");
+        $stmt->execute([$employeeId, $year]);
+        $result = $stmt->fetch();
+        return ['total_days' => $result['total_days'] ?? 0];
     }
 }
