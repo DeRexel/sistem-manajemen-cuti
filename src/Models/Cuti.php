@@ -12,6 +12,7 @@ class Cuti {
     }
 
     public function create($data) {
+<<<<<<< HEAD
         try {
             $stmt = $this->db->prepare("
                 INSERT INTO cuti (employee_id, jenis_cuti, alasan, tanggal_mulai, tanggal_selesai, 
@@ -41,6 +42,18 @@ class Cuti {
                 $data['alamat_cuti'], $data['telp_cuti'], $data['tanggal_pengajuan'], $data['pejabat_id']
             ]);
         }
+=======
+        $stmt = $this->db->prepare("
+            INSERT INTO cuti (employee_id, jenis_cuti, alasan, tanggal_mulai, tanggal_selesai, 
+                            lama_hari, alamat_cuti, telp_cuti, tanggal_pengajuan, pejabat_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([
+            $data['employee_id'], $data['jenis_cuti'], $data['alasan'],
+            $data['tanggal_mulai'], $data['tanggal_selesai'], $data['lama_hari'],
+            $data['alamat_cuti'], $data['telp_cuti'], $data['tanggal_pengajuan'], $data['pejabat_id']
+        ]);
+>>>>>>> parent of 53b33dd (Basic Function)
         return $this->db->lastInsertId();
     }
 
@@ -48,9 +61,14 @@ class Cuti {
         $stmt = $this->db->prepare("
             SELECT c.*, e.nama as employee_nama, e.nip as employee_nip, 
                    e.jabatan as employee_jabatan, e.unit_kerja as employee_unit,
+<<<<<<< HEAD
                    e.masa_kerja_tahun, e.masa_kerja_bulan, e.sisa_cuti_n2, e.sisa_cuti_n1, e.sisa_cuti_n,
                    e.digital_signature_path, e.use_digital_signature,
                    p.nama as pejabat_nama, p.jabatan as pejabat_jabatan, p.nip as pejabat_nip
+=======
+                   e.masa_kerja_tahun, e.sisa_cuti_n2, e.sisa_cuti_n1, e.sisa_cuti_n,
+                   p.nama as pejabat_nama, p.jabatan as pejabat_jabatan
+>>>>>>> parent of 53b33dd (Basic Function)
             FROM cuti c
             JOIN employees e ON c.employee_id = e.id
             LEFT JOIN pejabat p ON c.pejabat_id = p.id
@@ -96,51 +114,20 @@ class Cuti {
         return $stmt->fetchAll();
     }
 
-    public function updateStatus($id, $status, $approvedBy = null, $statusMessage = null) {
-        try {
-            // Always use basic update to ensure compatibility
-            $stmt = $this->db->prepare("UPDATE cuti SET status = ? WHERE id = ?");
-            $result = $stmt->execute([$status, $id]);
-            
-            // Try to update additional fields if they exist
-            if ($statusMessage) {
-                try {
-                    $stmt2 = $this->db->prepare("UPDATE cuti SET status_message = ? WHERE id = ?");
-                    $stmt2->execute([$statusMessage, $id]);
-                } catch (\PDOException $e) {
-                    // Ignore if column doesn't exist
-                }
-            }
-            
-            return $result;
-        } catch (\PDOException $e) {
-            return false;
+    public function updateStatus($id, $status, $approvedBy = null) {
+        $sql = "UPDATE cuti SET status = ?";
+        $params = [$status];
+        
+        if ($approvedBy) {
+            $sql .= ", approved_by = ?, approved_at = NOW()";
+            $params[] = $approvedBy;
         }
-    }
-
-    public function updateStatusMessage($id, $statusMessage) {
-        try {
-            $stmt = $this->db->prepare("UPDATE cuti SET status_message = ? WHERE id = ?");
-            return $stmt->execute([$statusMessage, $id]);
-        } catch (\PDOException $e) {
-            // Ignore if column doesn't exist
-            return true;
-        }
-    }
-
-    public function updateCancelInfo($id, $alasan, $cancelledBy) {
-        try {
-            if ($cancelledBy === 'admin') {
-                $stmt = $this->db->prepare("UPDATE cuti SET alasan_admin = ?, cancelled_by = ? WHERE id = ?");
-            } else {
-                $stmt = $this->db->prepare("UPDATE cuti SET alasan_atasan = ?, cancelled_by = ? WHERE id = ?");
-            }
-            return $stmt->execute([$alasan, $cancelledBy, $id]);
-        } catch (\PDOException $e) {
-            // Fallback: update alasan_cancel for old schema
-            $stmt = $this->db->prepare("UPDATE cuti SET alasan_cancel = ? WHERE id = ?");
-            return $stmt->execute([$alasan, $id]);
-        }
+        
+        $sql .= " WHERE id = ?";
+        $params[] = $id;
+        
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute($params);
     }
 
     public function updateFormPath($id, $formPath) {
@@ -187,6 +174,7 @@ class Cuti {
         $stmt->execute();
         return $stmt->fetch();
     }
+<<<<<<< HEAD
 
     public function getByEmployeeIdAndYearRange($employeeId, $yearStart, $yearEnd) {
         $stmt = $this->db->prepare("
@@ -275,4 +263,6 @@ class Cuti {
         $result = $stmt->fetch();
         return ['total_days' => $result['total_days'] ?? 0];
     }
+=======
+>>>>>>> parent of 53b33dd (Basic Function)
 }

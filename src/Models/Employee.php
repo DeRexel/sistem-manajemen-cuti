@@ -46,41 +46,4 @@ class Employee {
             $data['email'], $data['phone'], $data['alamat'], $data['atasan_langsung_id']
         ]);
     }
-
-    public function updateDigitalSignature($employeeId, $signaturePath) {
-        try {
-            $stmt = $this->db->prepare("
-                UPDATE employees 
-                SET digital_signature_path = ?, use_digital_signature = TRUE 
-                WHERE id = ?
-            ");
-            return $stmt->execute([$signaturePath, $employeeId]);
-        } catch (\PDOException $e) {
-            // Fallback for old database schema - just return true
-            return true;
-        }
-    }
-
-    public function toggleDigitalSignature($employeeId, $useDigital) {
-        try {
-            $stmt = $this->db->prepare("
-                UPDATE employees 
-                SET use_digital_signature = ? 
-                WHERE id = ?
-            ");
-            return $stmt->execute([$useDigital, $employeeId]);
-        } catch (\PDOException $e) {
-            // Fallback for old database schema - just return true
-            return true;
-        }
-    }
-
-    public function updateProfile($employeeId, $data) {
-        $stmt = $this->db->prepare("
-            UPDATE employees 
-            SET email = ?, phone = ?, alamat = ? 
-            WHERE id = ?
-        ");
-        return $stmt->execute([$data['email'], $data['phone'], $data['alamat'], $employeeId]);
-    }
 }

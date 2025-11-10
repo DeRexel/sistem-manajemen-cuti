@@ -3,7 +3,6 @@ use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\CutiController;
 use App\Controllers\AdminController;
-use App\Controllers\AccountController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\RoleMiddleware;
 use Slim\Routing\RouteCollectorProxy;
@@ -22,12 +21,16 @@ return function ($app) {
         $group->get('/cuti/create', [CutiController::class, 'showForm']);
         $group->post('/cuti/create', [CutiController::class, 'create']);
         $group->get('/cuti/download/{id}', [CutiController::class, 'downloadPDF']);
+<<<<<<< HEAD
         $group->get('/cuti/preview/{id}', [CutiController::class, 'previewPDF']);
         $group->get('/cuti/preview-berkas/{id}', [CutiController::class, 'previewBerkas']);
+=======
+>>>>>>> parent of 53b33dd (Basic Function)
         $group->post('/cuti/upload-signed/{id}', [CutiController::class, 'uploadSigned']);
         $group->post('/cuti/upload-berkas/{id}', [CutiController::class, 'uploadBerkasTambahan']);
         $group->post('/cuti/submit/{id}', [CutiController::class, 'submit']);
         $group->get('/cuti/history', [CutiController::class, 'history']);
+<<<<<<< HEAD
         $group->post('/cuti/upload-signature', [CutiController::class, 'uploadSignature']);
         
         // Digital Signature
@@ -36,14 +39,10 @@ return function ($app) {
         
         // Export
         $group->get('/cuti/export', [CutiController::class, 'exportReport']);
+=======
+        
+>>>>>>> parent of 53b33dd (Basic Function)
     })->add(AuthMiddleware::class)->add(new RoleMiddleware('user'));
-
-    // Account settings (Protected - both user and admin)
-    $app->group('/account', function (RouteCollectorProxy $group) {
-        $group->get('/settings', [AccountController::class, 'showSettings']);
-        $group->post('/password', [AccountController::class, 'updatePassword']);
-        $group->post('/profile', [AccountController::class, 'updateProfile']);
-    })->add(AuthMiddleware::class);
 
     // Admin routes (Protected)
     $app->group('/admin', function (RouteCollectorProxy $group) {
@@ -52,6 +51,7 @@ return function ($app) {
         // Cuti Approval
         $group->get('/cuti/pending', [AdminController::class, 'pendingList']);
         $group->get('/cuti/proses', [AdminController::class, 'prosesList']);
+<<<<<<< HEAD
         $group->get('/cuti/history', [AdminController::class, 'historyList']);
         $group->get('/cuti/export', [AdminController::class, 'exportHistory']);
         $group->get('/cuti/preview/{id}', [AdminController::class, 'previewPDF']);
@@ -59,6 +59,10 @@ return function ($app) {
         $group->get('/cuti/{id}/detail', [AdminController::class, 'getDetail']);
         $group->post('/cuti/{id}/status', [AdminController::class, 'updateStatus']);
         $group->post('/cuti/{id}/upload-atasan', [AdminController::class, 'uploadAtasanSigned']);
+=======
+        $group->post('/cuti/update-status/{id}', [AdminController::class, 'updateStatus']);
+        $group->post('/cuti/upload-atasan/{id}', [AdminController::class, 'uploadAtasanSigned']);
+>>>>>>> parent of 53b33dd (Basic Function)
         
         // Employee Management
         $group->get('/employees', [AdminController::class, 'employeeList']);

@@ -49,31 +49,19 @@ class AdminController {
     }
 
     public function updateStatus(Request $request, Response $response, $args) {
-        $response = $response->withHeader('Content-Type', 'application/json');
         $cutiId = $args['id'];
         $data = $request->getParsedBody();
         $newStatus = $data['status'];
         
-        // Basic status update
-        $this->cutiModel->updateStatus($cutiId, $newStatus);
+        $this->cutiModel->updateStatus($cutiId, $newStatus, $_SESSION['user_id']);
         
-        // Update status message based on new status
-        if ($newStatus === 'proses') {
-            $this->cutiModel->updateStatusMessage($cutiId, 'Menunggu keputusan atasan');
-        } elseif ($newStatus === 'selesai') {
-            $this->cutiModel->updateStatusMessage($cutiId, 'Cuti telah disetujui');
+        // If approved, update employee's leave quota
+        if ($newStatus === 'selesai' && isset($data['persetujuan_atasan']) && $data['persetujuan_atasan'] === 'disetujui') {
+            $cuti = $this->cutiModel->findById($cutiId);
+            $this->employeeModel->updateSisaCuti($cuti['employee_id'], $cuti['jenis_cuti'], $cuti['lama_hari']);
         }
         
-        // Handle cancel with reason
-        if ($newStatus === 'cancel') {
-            if (isset($data['alasan_admin'])) {
-                $this->cutiModel->updateCancelInfo($cutiId, $data['alasan_admin'], 'admin');
-            } elseif (isset($data['alasan_atasan'])) {
-                $this->cutiModel->updateCancelInfo($cutiId, $data['alasan_atasan'], 'atasan');
-            }
-        }
-        
-        // Handle approval decision
+        // Update approval decision
         if (isset($data['persetujuan_atasan'])) {
             $this->cutiModel->updatePersetujuanAtasan($cutiId, $data['persetujuan_atasan'], $data['catatan_atasan'] ?? null);
             
@@ -84,12 +72,10 @@ class AdminController {
             }
         }
         
-        $response->getBody()->write('OK');
-        return $response;
+        return $response->withJson(['success' => true]);
     }
 
     public function uploadAtasanSigned(Request $request, Response $response, $args) {
-        $response = $response->withHeader('Content-Type', 'application/json');
         $cutiId = $args['id'];
         $uploadedFiles = $request->getUploadedFiles();
         
@@ -102,13 +88,11 @@ class AdminController {
                 
                 $this->cutiModel->updateSignedAtasanPath($cutiId, $fileName);
                 
-                $response->getBody()->write(json_encode(['success' => true]));
-                return $response;
+                return $response->withJson(['success' => true]);
             }
         }
         
-        $response->getBody()->write(json_encode(['success' => false]));
-        return $response;
+        return $response->withJson(['success' => false]);
     }
 
     public function employeeList(Request $request, Response $response) {
@@ -146,6 +130,7 @@ class AdminController {
         
         return $response->withHeader('Location', '/admin/pejabat')->withStatus(302);
     }
+<<<<<<< HEAD
 
     public function getDetail(Request $request, Response $response, $args) {
         $cutiId = $args['id'];
@@ -356,4 +341,6 @@ class AdminController {
             ->withHeader('Content-Type', 'text/csv')
             ->withHeader('Content-Disposition', 'attachment; filename="' . $fileName . '"');
     }
+=======
+>>>>>>> parent of 53b33dd (Basic Function)
 }

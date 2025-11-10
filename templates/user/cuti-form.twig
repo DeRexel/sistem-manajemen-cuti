@@ -1,6 +1,6 @@
 {% extends "layouts/dashboard.twig" %}
 
-{% block title %}Ajukan Cuti - SICLE{% endblock %}
+{% block title %}Ajukan Cuti - SICUTI{% endblock %}
 
 {% block page_title %}Ajukan Cuti Baru{% endblock %}
 
@@ -23,7 +23,7 @@
     {% endif %}
     
     <div class="card p-6">
-        <form method="POST" action="/user/cuti/create" class="space-y-6" id="cutiForm">
+        <form method="POST" action="/user/cuti/create" class="space-y-6">
             <!-- Employee Info -->
             <div class="bg-gray-50 p-4 rounded-lg">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Data Pegawai</h3>
@@ -121,6 +121,7 @@
                 </select>
             </div>
 
+<<<<<<< HEAD
             <!-- Signature Method -->
             <div class="bg-yellow-50 p-4 rounded-lg">
                 <h4 class="text-sm font-medium text-yellow-900 mb-3">Metode Tanda Tangan</h4>
@@ -192,6 +193,8 @@
                 <p class="text-xs text-yellow-700 mt-2">Berkas ini akan diminta setelah formulir dibuat</p>
             </div>
 
+=======
+>>>>>>> parent of 53b33dd (Basic Function)
             <!-- Quota Info -->
             <div class="bg-blue-50 p-4 rounded-lg">
                 <h4 class="text-sm font-medium text-blue-900 mb-2">Informasi Kuota Cuti</h4>
@@ -220,14 +223,15 @@
                 <a href="/user/dashboard" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
                     Batal
                 </a>
-                <button type="submit" class="btn-primary" id="submitBtn">
+                <button type="submit" class="btn-primary">
                     <i class="fas fa-save mr-2"></i>
-                    <span id="submitText">Buat Pengajuan</span>
+                    Buat Pengajuan
                 </button>
             </div>
         </form>
     </div>
 </div>
+<<<<<<< HEAD
 
 <script>
 function showSignatureUpload() {
@@ -495,4 +499,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+=======
+>>>>>>> parent of 53b33dd (Basic Function)
 {% endblock %}

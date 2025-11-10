@@ -1,12 +1,4 @@
--- 🧹 Hapus database lama jika sudah ada
-DROP DATABASE IF EXISTS sicuti_db;
-
--- 🆕 Buat database baru jika belum ada
-CREATE DATABASE IF NOT EXISTS sicuti_db
-CHARACTER SET utf8mb4
-COLLATE utf8mb4_general_ci;
-
--- 🔄 Gunakan database tersebut
+CREATE DATABASE IF NOT EXISTS sicuti_db;
 USE sicuti_db;
 
 CREATE TABLE pejabat (
@@ -105,29 +97,3 @@ INSERT INTO system_settings (setting_key, setting_value, description) VALUES
 ('max_sisa_cuti_n1', '6', 'Maksimal sisa cuti tahun sebelumnya yang bisa dibawa'),
 ('institusi_nama', 'Universitas Palangka Raya', 'Nama institusi'),
 ('institusi_alamat', 'Palangka Raya', 'Alamat institusi');
-
-
--- Tambah kolom untuk tanda tangan digital di tabel employees
-ALTER TABLE employees ADD COLUMN digital_signature_path VARCHAR(255) AFTER alamat;
-ALTER TABLE employees ADD COLUMN use_digital_signature BOOLEAN DEFAULT FALSE AFTER digital_signature_path;
-
--- Tambah kolom untuk tracking metode tanda tangan di tabel cuti
-ALTER TABLE cuti ADD COLUMN signature_method ENUM('digital', 'manual') DEFAULT 'manual' AFTER form_signed_atasan_path;
-
--- Update database untuk menambahkan kolom status_message
-ALTER TABLE cuti ADD COLUMN status_message VARCHAR(255) DEFAULT NULL AFTER status;
-
--- Update existing records dengan status message yang sesuai
-UPDATE cuti SET status_message = CASE 
-    WHEN status = 'pending' AND form_signed_employee_path IS NULL THEN 'Menunggu konfirmasi admin'
-    WHEN status = 'pending' AND form_signed_employee_path IS NOT NULL THEN 'Menunggu upload formulir sudah ditandatangani'
-    WHEN status = 'proses' THEN 'Menunggu keputusan atasan'
-    WHEN status = 'selesai' THEN 'Cuti telah disetujui'
-    WHEN status = 'cancel' THEN 'Cuti dibatalkan'
-    ELSE 'Status tidak diketahui'
-END;
-
--- Update database untuk menambahkan kolom alasan_admin dan alasan_atasan
-ALTER TABLE cuti ADD COLUMN alasan_admin TEXT DEFAULT NULL AFTER alasan_cancel;
-ALTER TABLE cuti ADD COLUMN alasan_atasan TEXT DEFAULT NULL AFTER alasan_admin;
-ALTER TABLE cuti ADD COLUMN cancelled_by ENUM('admin', 'atasan') DEFAULT NULL AFTER alasan_atasan;

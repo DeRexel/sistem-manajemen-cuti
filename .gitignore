@@ -17,8 +17,6 @@ composer.lock
 
 # Uploads and user files
 /public/uploads/*
-/public/uploads/employee_signatures/*
-/public/uploads/signed_forms/*
 !/public/uploads/.gitkeep
 
 # IDE files

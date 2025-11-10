@@ -12,17 +12,19 @@ class PDFService {
         $pdf->AddPage();
         
         // Header
-        $pdf->SetFont('helvetica', '', 8);
-        $pdf->Cell(0, 0, 'Palangka Raya, ' . date('d F Y', strtotime($data['tanggal_pengajuan'])), 0, 1, 'L');
-        $pdf->Cell(0, 0, 'Kepada Yth.', 0, 1, 'L');
-        $pdf->Cell(0, 0, $data['pejabat_nama'], 0, 1, 'L');
-        $pdf->Cell(0, 0, 'Universitas Palangka Raya', 0, 1, 'L');
-        $pdf->Cell(0, 0, 'di -', 0, 1, 'L');
-        $pdf->Cell(0, 0, 'PALANGKA RAYA', 0, 1, 'L');
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->Cell(0, 5, 'Palangka Raya, ' . date('d F Y', strtotime($data['tanggal_pengajuan'])), 0, 1, 'R');
+        $pdf->Cell(0, 5, 'Kepada Yth.', 0, 1, 'R');
+        $pdf->Cell(0, 5, $data['pejabat_nama'], 0, 1, 'R');
+        $pdf->Cell(0, 5, 'Universitas Palangka Raya', 0, 1, 'R');
+        $pdf->Cell(0, 5, 'di -', 0, 1, 'R');
+        $pdf->Cell(0, 5, 'PALANGKA RAYA', 0, 1, 'R');
+        $pdf->Ln(10);
         
         // Title
-        $pdf->SetFont('helvetica', 'B', 10);
+        $pdf->SetFont('helvetica', 'B', 12);
         $pdf->Cell(0, 10, 'FORMULIR PERMINTAAN DAN PEMBERIAN CUTI', 0, 1, 'C');
+        $pdf->Ln(5);
         
         // Content
         $pdf->SetFont('helvetica', '', 9);
@@ -57,8 +59,7 @@ class PDFService {
         
         // Section I - Data Pegawai
         $html = '
-        <div style="width:100%;">
-        <table border="1" cellpadding="3" width="100%">
+        <table border="1" cellpadding="3">
             <tr><td colspan="4" style="background-color:#f0f0f0;"><b>I. DATA PEGAWAI</b></td></tr>
             <tr>
                 <td width="15%">Nama</td>
@@ -67,109 +68,122 @@ class PDFService {
                 <td width="35%">' . $data['employee_nip'] . '</td>
             </tr>
             <tr>
+<<<<<<< HEAD
                 <td width="15%">Jabatan</td>
                 <td width="35%">' . $data['employee_jabatan'] . '</td>
                 <td width="15%">Masa Kerja</td>
                 <td width="35%">' . $masa_kerja_text . '</td>
+=======
+                <td>Jabatan</td>
+                <td>' . $data['employee_jabatan'] . '</td>
+                <td>Masa Kerja</td>
+                <td>' . $data['masa_kerja_tahun'] . ' Tahun</td>
+>>>>>>> parent of 53b33dd (Basic Function)
             </tr>
             <tr>
-                <td width="15%">Unit Kerja</td>
-                <td colspan="3" width="85%">' . $data['employee_unit'] . ' - Universitas Palangka Raya</td>
+                <td>Unit Kerja</td>
+                <td colspan="3">' . $data['employee_unit'] . ' - Universitas Palangka Raya</td>
             </tr>
         </table><br>
         
-        <table border="1" cellpadding="3" width="100%">
+        <table border="1" cellpadding="3">
             <tr><td colspan="4" style="background-color:#f0f0f0;"><b>II. JENIS CUTI YANG DIAMBIL</b></td></tr>
             <tr>
                 <td width="40%">1. Cuti Tahunan</td>
-                <td width="10%">' . ($data['jenis_cuti'] == 'tahunan' ? '<b style="text-align:center;">V</b>': '') . '</td>
+                <td width="10%">' . ($data['jenis_cuti'] == 'tahunan' ? '✓' : '') . '</td>
                 <td width="40%">2. Cuti Besar</td>
-                <td width="10%">' . ($data['jenis_cuti'] == 'besar' ? '<b  style="text-align:center;">V</b>': '') . '</td>
+                <td width="10%">' . ($data['jenis_cuti'] == 'besar' ? '✓' : '') . '</td>
             </tr>
             <tr>
-                <td width="40%">3. Cuti Sakit</td>
-                <td width="10%">' . ($data['jenis_cuti'] == 'sakit' ? '<b  style="text-align:center;">V</b>': '') . '</td>
-                <td width="40%">4. Cuti Melahirkan</td>
-                <td width="10%">' . ($data['jenis_cuti'] == 'melahirkan' ? '<b  style="text-align:center;">V</b>': '') . '</td>
+                <td>3. Cuti Sakit</td>
+                <td>' . ($data['jenis_cuti'] == 'sakit' ? '✓' : '') . '</td>
+                <td>4. Cuti Melahirkan</td>
+                <td>' . ($data['jenis_cuti'] == 'melahirkan' ? '✓' : '') . '</td>
             </tr>
             <tr>
-                <td width="40%">5. Cuti Karena Alasan Penting</td>
-                <td width="10%">' . ($data['jenis_cuti'] == 'alasan_penting' ? '<b  style="text-align:center;">V</b>': '') . '</td>
-                <td width="40%">6. Cuti Diluar Tanggungan Negara</td>
-                <td width="10%">' . ($data['jenis_cuti'] == 'diluar_tanggungan' ? '<b  style="text-align:center;">V</b>': '') . '</td>
+                <td>5. Cuti Karena Alasan Penting</td>
+                <td>' . ($data['jenis_cuti'] == 'alasan_penting' ? '✓' : '') . '</td>
+                <td>6. Cuti Diluar Tanggungan Negara</td>
+                <td>' . ($data['jenis_cuti'] == 'diluar_tanggungan' ? '✓' : '') . '</td>
             </tr>
         </table><br>
         
-        <table border="1" cellpadding="3" width="100%">
+        <table border="1" cellpadding="3">
             <tr><td style="background-color:#f0f0f0;"><b>III. ALASAN CUTI</b></td></tr>
-            <tr><td style="text-align: justify;">' . $data['alasan'] . '</td></tr>
+            <tr><td>' . $data['alasan'] . '</td></tr>
         </table><br>
         
-        <table border="1" cellpadding="3" width="100%">
+        <table border="1" cellpadding="3">
             <tr><td colspan="5" style="background-color:#f0f0f0;"><b>IV. LAMANYA CUTI</b></td></tr>
             <tr>
-                <td width="20%" style="text-align:center;">' . $data['lama_hari'] . ' hari</td>
-                <td width="20%" style="text-align:center;">mulai tanggal</td>
-                <td width="20%" style="text-align:center;">' . date('d-m-Y', strtotime($data['tanggal_mulai'])) . '</td>
-                <td width="10%" style="text-align:center;">s/d</td>
-                <td width="30%" style="text-align:center;">' . date('d-m-Y', strtotime($data['tanggal_selesai'])) . '</td>
+                <td width="20%">' . $data['lama_hari'] . ' hari</td>
+                <td width="20%">mulai tanggal</td>
+                <td width="20%">' . date('d-m-Y', strtotime($data['tanggal_mulai'])) . '</td>
+                <td width="10%">s/d</td>
+                <td width="30%">' . date('d-m-Y', strtotime($data['tanggal_selesai'])) . '</td>
             </tr>
         </table><br>
         
-        <table border="1" cellpadding="3" width="100%">
+        <table border="1" cellpadding="3">
             <tr><td colspan="2" style="background-color:#f0f0f0;"><b>V. CATATAN CUTI</b></td></tr>
             <tr>
-                <td width="50%" style="vertical-align:top;">
+                <td width="50%">
                     <b>1. CUTI TAHUNAN</b><br>
+<<<<<<< HEAD
                     <table border="1" cellpadding="2" width="100%">
                         <tr style="text-align:center;"><td>Tahun</td><td>Lama</td><td>Diambil</td><td>Sisa</td></tr>
                         <tr style="text-align:center;"><td>N-2</td><td>' . $data['sisa_cuti_n2'] . '</td><td>0</td><td>' . $data['sisa_cuti_n2'] . '</td></tr>
                         <tr style="text-align:center;"><td>N-1</td><td>' . $data['sisa_cuti_n1'] . '</td><td>' . $diambil_n1 . '</td><td>' . $sisa_n1 . '</td></tr>
                         <tr style="text-align:center;"><td>N</td><td>' . $data['sisa_cuti_n'] . '</td><td>' . $diambil_n . '</td><td>' . $sisa_n . '</td></tr>
+=======
+                    <table border="1" cellpadding="2">
+                        <tr><td>Tahun</td><td>Sisa</td><td>Keterangan</td></tr>
+                        <tr><td>N-2</td><td>' . $data['sisa_cuti_n2'] . '</td><td></td></tr>
+                        <tr><td>N-1</td><td>' . $data['sisa_cuti_n1'] . '</td><td></td></tr>
+                        <tr><td>N</td><td>' . $data['sisa_cuti_n'] . '</td><td></td></tr>
+>>>>>>> parent of 53b33dd (Basic Function)
                     </table>
                 </td>
-                <td width="50%" style="vertical-align:top;">
-                    <table border="1" cellpadding="2" width="100%">
-                        <tr><td width="85%">2. CUTI BESAR</td><td width="15%"></td></tr>
-                        <tr><td>3. CUTI SAKIT</td><td></td></tr>
-                        <tr><td>4. CUTI MELAHIRKAN</td><td></td></tr>
-                        <tr><td>5. CUTI KARENA ALASAN PENTING</td><td></td></tr>
-                        <tr><td>6. CUTI DI LUAR TANGGUNGAN NEGARA</td><td></td></tr>
-                    </table>
+                <td width="50%">
+                    2. CUTI BESAR<br>
+                    3. CUTI SAKIT<br>
+                    4. CUTI MELAHIRKAN<br>
+                    5. CUTI KARENA ALASAN PENTING<br>
+                    6. CUTI DI LUAR TANGGUNGAN NEGARA
                 </td>
             </tr>
         </table><br>
         
-        <table border="1" cellpadding="3" width="100%">
+        <table border="1" cellpadding="3">
             <tr><td colspan="2" style="background-color:#f0f0f0;"><b>VI. ALAMAT SELAMA MENJALANKAN CUTI</b></td></tr>
             <tr><td colspan="2">' . nl2br($data['alamat_cuti']) . '</td></tr>
             <tr><td width="70%"></td><td width="30%">Telp. ' . $data['telp_cuti'] . '</td></tr>
             <tr>
                 <td></td>
-                <td style="text-align:center; height:100px;">
-                    Hormat Saya,<br><br><br><br><br>
+                <td style="text-align:center;">
+                    Hormat Saya,<br><br><br>
                     ' . $data['employee_nama'] . '<br>
                     NIP. ' . $data['employee_nip'] . '
                 </td>
             </tr>
         </table><br>
         
-        <table border="1" cellpadding="3" width="100%">
+        <table border="1" cellpadding="3">
             <tr><td colspan="4" style="background-color:#f0f0f0;"><b>VII. PERTIMBANGAN ATASAN LANGSUNG</b></td></tr>
             <tr>
-                <td width="25%" style="text-align:center;">DISETUJUI</td>
-                <td width="25%" style="text-align:center;">PERUBAHAN</td>
-                <td width="25%" style="text-align:center;">DITANGGUHKAN</td>
-                <td width="25%" style="text-align:center;">TIDAK DISETUJUI</td>
+                <td width="25%">DISETUJUI</td>
+                <td width="25%">PERUBAHAN</td>
+                <td width="25%">DITANGGUHKAN</td>
+                <td width="25%">TIDAK DISETUJUI</td>
             </tr>
             <tr>
-                <td colspan="2"></td>
-                <td colspan="2" style="text-align:center; height:100px;">
-                    ' . $data['pejabat_jabatan'] . '<br><br><br><br><br>
-                    ' . $data['pejabat_nama'] . '<br>
-                    NIP. ' . $data['pejabat_nip'] . '
+                <td colspan="3"></td>
+                <td style="text-align:center;">
+                    ' . $data['pejabat_jabatan'] . '<br><br><br>
+                    ' . $data['pejabat_nama'] . '
                 </td>
             </tr>
+<<<<<<< HEAD
         </table>
         </div>';
         
@@ -359,6 +373,9 @@ class PDFService {
             </tr>
         </table>
         </div>';
+=======
+        </table>';
+>>>>>>> parent of 53b33dd (Basic Function)
         
         $pdf->writeHTML($html, true, false, true, false, '');
         

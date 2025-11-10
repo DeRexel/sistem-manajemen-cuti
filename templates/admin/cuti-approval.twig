@@ -1,6 +1,6 @@
 {% extends "layouts/dashboard.twig" %}
 
-{% block title %}{{ status == 'pending' ? 'Cuti Pending' : 'Cuti Proses' }} - SICLE{% endblock %}
+{% block title %}{{ status == 'pending' ? 'Cuti Pending' : 'Cuti Proses' }} - SICUTI{% endblock %}
 
 {% block page_title %}{{ status == 'pending' ? 'Pengajuan Cuti Pending' : 'Pengajuan Cuti Dalam Proses' }}{% endblock %}
 
@@ -49,7 +49,7 @@
                             {{ cuti.lama_hari }} hari
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            {% include 'components/status-badge.twig' with {'status': cuti.status, 'status_message': cuti.status_message} %}
+                            {% include 'components/status-badge.twig' with {'status': cuti.status} %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-2">
@@ -74,38 +74,21 @@
                                 
                                 {% if status == 'proses' %}
                                     <!-- Upload Atasan TTD -->
-                                    {% if cuti.form_signed_atasan_path %}
-                                        <button onclick="showUploadedFile({{ cuti.id }})" class="text-green-600 hover:text-green-900" title="TTD Atasan Sudah Diupload - Klik untuk Preview">
-                                            <i class="fas fa-check-circle"></i>
-                                        </button>
-                                    {% else %}
-                                        <button onclick="document.getElementById('upload-atasan-{{ cuti.id }}').click()" class="text-purple-600 hover:text-purple-900" title="Upload TTD Atasan">
-                                            <i class="fas fa-upload"></i>
-                                        </button>
-                                    {% endif %}
-                                    <input type="file" id="upload-atasan-{{ cuti.id }}" accept=".pdf" style="display: none;" onchange="previewBeforeUpload('upload-atasan-{{ cuti.id }}', {{ cuti.id }}, 'atasan')">
+                                    <button onclick="document.getElementById('upload-atasan-{{ cuti.id }}').click()" class="text-purple-600 hover:text-purple-900" title="Upload TTD Atasan">
+                                        <i class="fas fa-upload"></i>
+                                    </button>
+                                    <input type="file" id="upload-atasan-{{ cuti.id }}" accept=".pdf" style="display: none;" onchange="handleFileUpload('upload-atasan-{{ cuti.id }}', {{ cuti.id }}, 'atasan')">
                                     
                                     <!-- Approval Buttons -->
-                                    {% if cuti.form_signed_atasan_path %}
-                                        <button onclick="showApprovalModal({{ cuti.id }})" class="text-green-600 hover:text-green-900" title="Keputusan Atasan">
-                                            <i class="fas fa-gavel"></i>
-                                        </button>
-                                    {% else %}
-                                        <button class="text-gray-400 cursor-not-allowed" title="Upload TTD Atasan terlebih dahulu" disabled>
-                                            <i class="fas fa-gavel"></i>
-                                        </button>
-                                    {% endif %}
-                                    
-                                    <!-- Cancel Atasan Button -->
-                                    <button onclick="cancelCutiAtasan({{ cuti.id }})" class="text-red-600 hover:text-red-900" title="Batalkan (Atasan)">
-                                        <i class="fas fa-ban"></i>
-                                    </button>
-                                {% else %}
-                                    <!-- Cancel Admin Button -->
-                                    <button onclick="cancelCuti({{ cuti.id }})" class="text-red-600 hover:text-red-900" title="Batalkan (Admin)">
-                                        <i class="fas fa-times"></i>
+                                    <button onclick="showApprovalModal({{ cuti.id }})" class="text-green-600 hover:text-green-900" title="Keputusan Atasan">
+                                        <i class="fas fa-gavel"></i>
                                     </button>
                                 {% endif %}
+                                
+                                <!-- Cancel Button -->
+                                <button onclick="cancelCuti({{ cuti.id }})" class="text-red-600 hover:text-red-900" title="Batalkan">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -120,31 +103,6 @@
             <p class="text-gray-500">Semua pengajuan sudah diproses.</p>
         </div>
         {% endif %}
-    </div>
-</div>
-
-<!-- Upload Preview Modal -->
-<div id="uploadPreviewModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-screen overflow-y-auto">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Preview File Upload</h3>
-            <button onclick="closeUploadPreview()" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <div id="previewContent" class="mb-4">
-            <iframe id="previewFrame" class="w-full h-96 border rounded"></iframe>
-        </div>
-        
-        <div class="flex justify-end space-x-4">
-            <button onclick="closeUploadPreview()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                Batal
-            </button>
-            <button id="confirmUploadBtn" onclick="confirmUpload()" class="btn-primary">
-                Upload File
-            </button>
-        </div>
     </div>
 </div>
 
@@ -196,8 +154,8 @@
 <script>
 let currentCutiId = null;
 
-// View PDF Detail - Preview Modal
 function viewDetail(cutiId) {
+<<<<<<< HEAD
     showPreviewModal(cutiId);
 }
 
@@ -260,6 +218,10 @@ function updateStatus(cutiId, status, persetujuan = null, catatan = null) {
         location.reload();
     };
     xhr.send(body);
+=======
+    // Implement view detail functionality
+    alert('Detail cuti ID: ' + cutiId);
+>>>>>>> parent of 53b33dd (Basic Function)
 }
 
 function showApprovalModal(cutiId) {
@@ -288,125 +250,10 @@ function submitApproval() {
 }
 
 function cancelCuti(cutiId) {
-    const alasan = prompt('Alasan pembatalan (Admin):');
-    if (alasan && alasan.trim()) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', `/admin/cuti/${cutiId}/status`, true);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.onload = function() {
-            location.reload();
-        };
-        xhr.onerror = function() {
-            location.reload();
-        };
-        xhr.send(`status=cancel&alasan_admin=${encodeURIComponent(alasan)}`);
+    const alasan = prompt('Alasan pembatalan:');
+    if (alasan) {
+        updateStatus(cutiId, 'cancel', null, alasan);
     }
-}
-
-function cancelCutiAtasan(cutiId) {
-    const alasan = prompt('Alasan pembatalan (Atasan):');
-    if (alasan && alasan.trim()) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', `/admin/cuti/${cutiId}/status`, true);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.onload = function() {
-            location.reload();
-        };
-        xhr.onerror = function() {
-            location.reload();
-        };
-        xhr.send(`status=cancel&alasan_atasan=${encodeURIComponent(alasan)}&cancelled_by=atasan`);
-    }
-}
-
-// Variables for upload preview
-let pendingUpload = null;
-
-// Preview before upload
-function previewBeforeUpload(inputId, cutiId, type) {
-    const fileInput = document.getElementById(inputId);
-    const file = fileInput.files[0];
-    
-    if (!file) return;
-    
-    if (file.type !== 'application/pdf') {
-        alert('Hanya file PDF yang diperbolehkan');
-        return;
-    }
-    
-    // Store upload info
-    pendingUpload = { inputId, cutiId, type, file };
-    
-    // Show preview
-    const fileURL = URL.createObjectURL(file);
-    document.getElementById('previewFrame').src = fileURL;
-    document.getElementById('confirmUploadBtn').style.display = 'inline-block';
-    document.getElementById('uploadPreviewModal').classList.remove('hidden');
-    document.getElementById('uploadPreviewModal').classList.add('flex');
-}
-
-// Confirm upload after preview
-function confirmUpload() {
-    if (!pendingUpload) return;
-    
-    const formData = new FormData();
-    formData.append('signed_form', pendingUpload.file);
-    
-    const endpoint = `/admin/cuti/${pendingUpload.cutiId}/upload-atasan`;
-    
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', endpoint, true);
-    xhr.onload = function() {
-        closeUploadPreview();
-        location.reload();
-    };
-    xhr.onerror = function() {
-        closeUploadPreview();
-        location.reload();
-    };
-    xhr.send(formData);
-}
-
-// Show uploaded file preview
-function showUploadedFile(cutiId) {
-    document.getElementById('previewFrame').src = `/admin/cuti/preview/${cutiId}`;
-    document.getElementById('confirmUploadBtn').style.display = 'none';
-    document.getElementById('uploadPreviewModal').classList.remove('hidden');
-    document.getElementById('uploadPreviewModal').classList.add('flex');
-}
-
-// Close upload preview
-function closeUploadPreview() {
-    document.getElementById('uploadPreviewModal').classList.add('hidden');
-    document.getElementById('uploadPreviewModal').classList.remove('flex');
-    
-    if (pendingUpload) {
-        URL.revokeObjectURL(document.getElementById('previewFrame').src);
-        pendingUpload = null;
-    }
-}
-
-// File Upload Handler (fallback)
-function handleFileUpload(inputId, cutiId, type) {
-    const fileInput = document.getElementById(inputId);
-    const file = fileInput.files[0];
-    
-    if (!file) return;
-    
-    const formData = new FormData();
-    formData.append('signed_form', file);
-    
-    const endpoint = type === 'atasan' ? `/admin/cuti/${cutiId}/upload-atasan` : `/user/cuti/${cutiId}/upload-signed`;
-    
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', endpoint, true);
-    xhr.onload = function() {
-        location.reload();
-    };
-    xhr.onerror = function() {
-        location.reload();
-    };
-    xhr.send(formData);
 }
 </script>
 {% endblock %}
