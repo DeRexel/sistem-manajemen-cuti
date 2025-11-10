@@ -6,22 +6,6 @@
 
 {% block dashboard_content %}
 <div class="max-w-4xl mx-auto">
-    {% if error_message %}
-    <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-        <div class="flex">
-            <div class="flex-shrink-0">
-                <i class="fas fa-exclamation-triangle text-red-400"></i>
-            </div>
-            <div class="ml-3">
-                <h3 class="text-sm font-medium text-red-800">Error Validasi</h3>
-                <div class="mt-2 text-sm text-red-700">
-                    {{ error_message|raw }}
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-    
     <div class="card p-6">
         <form method="POST" action="/user/cuti/create" class="space-y-6" id="cutiForm">
             <!-- Employee Info -->
@@ -52,14 +36,13 @@
                 <label for="jenis_cuti" class="block text-sm font-medium text-gray-700">Jenis Cuti</label>
                 <select id="jenis_cuti" name="jenis_cuti" required class="form-input mt-1">
                     <option value="">Pilih Jenis Cuti</option>
-                    <option value="tahunan">Cuti Tahunan (CT)</option>
-                    <option value="besar">Cuti Besar (CB)</option>
-                    <option value="sakit">Cuti Sakit (CS)</option>
-                    <option value="melahirkan">Cuti Melahirkan (CM)</option>
-                    <option value="alasan_penting">Cuti Karena Alasan Penting (CAP)</option>
-                    <option value="diluar_tanggungan">Cuti Diluar Tanggungan Negara (CLTN)</option>
+                    <option value="tahunan">Cuti Tahunan</option>
+                    <option value="besar">Cuti Besar</option>
+                    <option value="sakit">Cuti Sakit</option>
+                    <option value="melahirkan">Cuti Melahirkan</option>
+                    <option value="alasan_penting">Cuti Karena Alasan Penting</option>
+                    <option value="diluar_tanggungan">Cuti Diluar Tanggungan Negara</option>
                 </select>
-                <div id="cutiInfo" class="mt-2 text-sm text-gray-600 hidden"></div>
             </div>
 
             <!-- Reason -->
@@ -87,22 +70,8 @@
             <!-- Contact Info -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Alamat Selama Cuti</label>
-                    <div class="space-y-2">
-                        <div>
-                            <label for="alamat_jalan" class="block text-xs text-gray-600">Alamat</label>
-                            <input type="text" id="alamat_jalan" class="form-input" placeholder="Jalan, RT/RW, No. Rumah">
-                        </div>
-                        <div>
-                            <label for="alamat_kelurahan" class="block text-xs text-gray-600">Kelurahan/Desa</label>
-                            <input type="text" id="alamat_kelurahan" class="form-input" placeholder="Nama kelurahan/desa">
-                        </div>
-                        <div>
-                            <label for="alamat_kabkota" class="block text-xs text-gray-600">Kab/Kota</label>
-                            <input type="text" id="alamat_kabkota" class="form-input" placeholder="Kabupaten/Kota">
-                        </div>
-                    </div>
-                    <input type="hidden" id="alamat_cuti" name="alamat_cuti" required>
+                    <label for="alamat_cuti" class="block text-sm font-medium text-gray-700">Alamat Selama Cuti</label>
+                    <textarea id="alamat_cuti" name="alamat_cuti" rows="3" required class="form-input mt-1" placeholder="Alamat lengkap selama menjalankan cuti..."></textarea>
                 </div>
                 <div>
                     <label for="telp_cuti" class="block text-sm font-medium text-gray-700">Telepon</label>
@@ -183,15 +152,6 @@
                 </div>
             </div>
 
-            <!-- Required Documents Alert -->
-            <div id="requiredDocsAlert" class="hidden bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                <h4 class="text-sm font-medium text-yellow-900 mb-2">
-                    <i class="fas fa-file-alt mr-1"></i>Berkas Tambahan Diperlukan
-                </h4>
-                <div id="requiredDocsList" class="text-sm text-yellow-800"></div>
-                <p class="text-xs text-yellow-700 mt-2">Berkas ini akan diminta setelah formulir dibuat</p>
-            </div>
-
             <!-- Quota Info -->
             <div class="bg-blue-50 p-4 rounded-lg">
                 <h4 class="text-sm font-medium text-blue-900 mb-2">Informasi Kuota Cuti</h4>
@@ -208,10 +168,6 @@
                         <span class="text-blue-700">Sisa Cuti Tahun Ini:</span>
                         <span class="font-medium">{{ employee.sisa_cuti_n }} hari</span>
                     </div>
-                </div>
-                <div class="mt-2 text-xs text-blue-600">
-                    <strong>Total tersedia:</strong> {{ employee.sisa_cuti_n2 + employee.sisa_cuti_n1 + employee.sisa_cuti_n }} hari
-                    <br><em>Penggunaan: N-2 → N-1 → Tahun ini</em>
                 </div>
             </div>
 
@@ -312,45 +268,8 @@ function showSuccess(message) {
 // Prevent double submission
 let isSubmitting = false;
 
-// Combine address fields
-function updateAlamatCuti() {
-    const jalan = document.getElementById('alamat_jalan').value;
-    const kelurahan = document.getElementById('alamat_kelurahan').value;
-    const kabkota = document.getElementById('alamat_kabkota').value;
-    
-    let alamatLengkap = '';
-    if (jalan) alamatLengkap += 'Alamat: ' + jalan;
-    if (kelurahan) alamatLengkap += (alamatLengkap ? '\nKelurahan/Desa: ' : 'Kelurahan/Desa: ') + kelurahan;
-    if (kabkota) alamatLengkap += (alamatLengkap ? '\nKab/Kota: ' : 'Kab/Kota: ') + kabkota;
-    
-    document.getElementById('alamat_cuti').value = alamatLengkap;
-}
-
-// Parse existing address
-function parseEmployeeAddress() {
-    const employeeAlamat = '{{ employee.alamat|raw }}';
-    if (employeeAlamat && employeeAlamat !== 'null') {
-        // Try to parse if it's already in structured format
-        const lines = employeeAlamat.split('\n');
-        lines.forEach(line => {
-            if (line.startsWith('Alamat:')) {
-                document.getElementById('alamat_jalan').value = line.replace('Alamat:', '').trim();
-            } else if (line.startsWith('Kelurahan/Desa:')) {
-                document.getElementById('alamat_kelurahan').value = line.replace('Kelurahan/Desa:', '').trim();
-            } else if (line.startsWith('Kab/Kota:')) {
-                document.getElementById('alamat_kabkota').value = line.replace('Kab/Kota:', '').trim();
-            } else if (!line.includes(':') && line.trim()) {
-                // If it's unstructured, put it in alamat field
-                document.getElementById('alamat_jalan').value = line.trim();
-            }
-        });
-        updateAlamatCuti();
-    }
-}
-
 // Update submit button text based on signature method
 document.addEventListener('DOMContentLoaded', function() {
-    parseEmployeeAddress();
     const form = document.getElementById('cutiForm');
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submitText');
@@ -401,98 +320,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     startDate.addEventListener('change', calculateDays);
     endDate.addEventListener('change', calculateDays);
-    
-    // Address field listeners
-    document.getElementById('alamat_jalan').addEventListener('input', updateAlamatCuti);
-    document.getElementById('alamat_kelurahan').addEventListener('input', updateAlamatCuti);
-    document.getElementById('alamat_kabkota').addEventListener('input', updateAlamatCuti);
-    
-    // Show leave type info and required documents
-    const jenisCutiSelect = document.getElementById('jenis_cuti');
-    const cutiInfo = document.getElementById('cutiInfo');
-    const requiredDocsAlert = document.getElementById('requiredDocsAlert');
-    const requiredDocsList = document.getElementById('requiredDocsList');
-    const alasanTextarea = document.getElementById('alasan');
-    
-    const cutiInfoData = {
-        'tahunan': 'Minimal 1 tahun kerja. Hak 12 hari/tahun. Minimal 1 hari. Sisa maksimal 6 hari dapat dibawa ke tahun berikutnya.',
-        'besar': 'Minimal 5 tahun kerja. Maksimal 3 bulan. Tidak dapat bersamaan dengan cuti tahunan.',
-        'sakit': 'Maksimal 1 tahun. Perlu surat keterangan dokter.',
-        'melahirkan': 'Untuk kelahiran anak 1-3. Lamanya 3 bulan.',
-        'alasan_penting': 'Maksimal 1 bulan. Untuk keadaan darurat keluarga.',
-        'diluar_tanggungan': 'Minimal 5 tahun kerja. Maksimal 3 tahun. Tidak mendapat gaji.'
-    };
-    
-    jenisCutiSelect.addEventListener('change', function() {
-        const selectedType = this.value;
-        
-        if (selectedType && cutiInfoData[selectedType]) {
-            cutiInfo.textContent = cutiInfoData[selectedType];
-            cutiInfo.classList.remove('hidden');
-        } else {
-            cutiInfo.classList.add('hidden');
-        }
-        
-        checkRequiredDocuments();
-    });
-    
-    alasanTextarea.addEventListener('input', checkRequiredDocuments);
-    
-    function checkRequiredDocuments() {
-        const jenisCuti = jenisCutiSelect.value;
-        const alasan = alasanTextarea.value.toLowerCase();
-        let requiredDocs = [];
-        
-        switch (jenisCuti) {
-            case 'sakit':
-                if (alasan.includes('rawat inap')) {
-                    requiredDocs.push('Surat keterangan rawat inap dari Unit Pelayanan Kesehatan');
-                } else {
-                    requiredDocs.push('Surat keterangan dokter');
-                }
-                break;
-                
-            case 'melahirkan':
-                requiredDocs.push('Surat keterangan dokter/bidan');
-                break;
-                
-            case 'alasan_penting':
-                if (alasan.includes('sakit keras')) {
-                    requiredDocs.push('Surat keterangan rawat inap dari Unit Pelayanan Kesehatan');
-                } else if (alasan.includes('meninggal')) {
-                    requiredDocs.push('Surat keterangan kematian dari Desa/RT');
-                } else if (alasan.includes('perkawinan') || alasan.includes('nikah')) {
-                    requiredDocs.push('Keterangan/undangan pernikahan');
-                } else if (alasan.includes('melahirkan') || alasan.includes('caesar')) {
-                    requiredDocs.push('Surat keterangan rawat inap dari Unit Pelayanan Kesehatan');
-                } else if (alasan.includes('kebakaran') || alasan.includes('bencana')) {
-                    requiredDocs.push('Surat keterangan dari Desa/RT');
-                }
-                break;
-                
-            case 'diluar_tanggungan':
-                if (alasan.includes('tugas negara') || alasan.includes('tugas belajar')) {
-                    requiredDocs.push('Surat penugasan atau surat perintah tugas negara/tugas belajar');
-                } else if (alasan.includes('bekerja')) {
-                    requiredDocs.push('Surat keputusan atau surat penugasan/pengangkatan dalam jabatan');
-                } else if (alasan.includes('keturunan')) {
-                    requiredDocs.push('Surat keterangan dokter spesialis');
-                } else if (alasan.includes('berkebutuhan khusus') || alasan.includes('perawatan khusus')) {
-                    requiredDocs.push('Surat keterangan dokter spesialis');
-                } else if (alasan.includes('orang tua') || alasan.includes('mertua')) {
-                    requiredDocs.push('Surat keterangan dokter');
-                }
-                break;
-        }
-        
-        if (requiredDocs.length > 0) {
-            requiredDocsList.innerHTML = '<ul class="list-disc list-inside">' + 
-                requiredDocs.map(doc => '<li>' + doc + '</li>').join('') + '</ul>';
-            requiredDocsAlert.classList.remove('hidden');
-        } else {
-            requiredDocsAlert.classList.add('hidden');
-        }
-    }
 });
 </script>
 {% endblock %}

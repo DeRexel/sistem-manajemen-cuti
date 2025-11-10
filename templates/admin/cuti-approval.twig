@@ -58,13 +58,6 @@
                                     <i class="fas fa-eye"></i>
                                 </button>
                                 
-                                <!-- Berkas Tambahan Preview -->
-                                {% if cuti.berkas_tambahan_path is defined and cuti.berkas_tambahan_path %}
-                                <button onclick="previewBerkasAdmin({{ cuti.id }})" class="text-orange-600 hover:text-orange-900" title="Preview Berkas Tambahan">
-                                    <i class="fas fa-file-alt"></i>
-                                </button>
-                                {% endif %}
-                                
                                 {% if status == 'pending' %}
                                     <!-- Process Button -->
                                     <button onclick="updateStatus({{ cuti.id }}, 'proses')" class="text-green-600 hover:text-green-900" title="Proses">
@@ -224,24 +217,6 @@ function closePreviewModal() {
     if (modal) {
         modal.remove();
     }
-}
-
-function previewBerkasAdmin(cutiId) {
-    const modal = document.createElement('div');
-    modal.id = 'previewModal';
-    modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
-    modal.innerHTML = `
-        <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-5/6 lg:w-4/5 shadow-lg rounded-md bg-white">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Preview Berkas Tambahan</h3>
-                <button onclick="closePreviewModal()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <iframe id="documentFrame" src="/admin/cuti/preview-berkas/${cutiId}" class="w-full h-screen border rounded"></iframe>
-        </div>
-    `;
-    document.body.appendChild(modal);
 }
 
 // Update Status

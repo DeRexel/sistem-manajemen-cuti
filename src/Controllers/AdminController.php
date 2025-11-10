@@ -4,7 +4,6 @@ namespace App\Controllers;
 use App\Models\Cuti;
 use App\Models\Employee;
 use App\Models\Pejabat;
-use App\Services\CutiQuotaService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -13,13 +12,11 @@ class AdminController {
     private $cutiModel;
     private $employeeModel;
     private $pejabatModel;
-    private $quotaService;
 
     public function __construct() {
         $this->cutiModel = new Cuti();
         $this->employeeModel = new Employee();
         $this->pejabatModel = new Pejabat();
-        $this->quotaService = new CutiQuotaService();
     }
 
     private function getTwig(Request $request): Twig {
@@ -76,12 +73,6 @@ class AdminController {
         // Handle approval decision
         if (isset($data['persetujuan_atasan'])) {
             $this->cutiModel->updatePersetujuanAtasan($cutiId, $data['persetujuan_atasan'], $data['catatan_atasan'] ?? null);
-            
-            // Kurangi kuota jika disetujui
-            if ($data['persetujuan_atasan'] === 'disetujui') {
-                $cuti = $this->cutiModel->findById($cutiId);
-                $this->quotaService->deductQuota($cuti['employee_id'], $cuti['lama_hari'], $cuti['jenis_cuti']);
-            }
         }
         
         $response->getBody()->write('OK');
@@ -206,33 +197,6 @@ class AdminController {
         $pdfContent = $pdfService->generateCutiForm($cuti);
         $response->getBody()->write($pdfContent);
         return $response->withHeader('Content-Type', 'application/pdf');
-    }
-
-    public function previewBerkas(Request $request, Response $response, $args) {
-        $cutiId = $args['id'];
-        $cuti = $this->cutiModel->findById($cutiId);
-        
-        if (!$cuti || !$cuti['berkas_tambahan_path']) {
-            return $response->withStatus(404);
-        }
-        
-        $filePath = __DIR__ . '/../../public/uploads/berkas_tambahan/' . $cuti['berkas_tambahan_path'];
-        
-        if (!file_exists($filePath)) {
-            return $response->withStatus(404);
-        }
-        
-        $fileContent = file_get_contents($filePath);
-        $extension = pathinfo($cuti['berkas_tambahan_path'], PATHINFO_EXTENSION);
-        
-        if (strtolower($extension) === 'pdf') {
-            $contentType = 'application/pdf';
-        } else {
-            $contentType = 'image/' . strtolower($extension);
-        }
-        
-        $response->getBody()->write($fileContent);
-        return $response->withHeader('Content-Type', $contentType);
     }
 
     public function historyList(Request $request, Response $response) {

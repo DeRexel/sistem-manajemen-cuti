@@ -36,13 +36,13 @@ class Employee {
 
     public function create($data) {
         $stmt = $this->db->prepare("
-            INSERT INTO employees (nip, nama, jabatan, unit_kerja, masa_kerja_tahun, masa_kerja_bulan,
+            INSERT INTO employees (nip, nama, jabatan, unit_kerja, masa_kerja_tahun, 
                                  kuota_cuti_tahunan, sisa_cuti_n, email, phone, alamat, atasan_langsung_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         return $stmt->execute([
             $data['nip'], $data['nama'], $data['jabatan'], $data['unit_kerja'],
-            $data['masa_kerja_tahun'], $data['masa_kerja_bulan'] ?? 0, $data['kuota_cuti_tahunan'], $data['sisa_cuti_n'],
+            $data['masa_kerja_tahun'], $data['kuota_cuti_tahunan'], $data['sisa_cuti_n'],
             $data['email'], $data['phone'], $data['alamat'], $data['atasan_langsung_id']
         ]);
     }

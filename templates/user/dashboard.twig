@@ -1,6 +1,6 @@
 {% extends "layouts/dashboard.twig" %}
 
-{% block title %}Dashboard User - SICLE{% endblock %}
+{% block title %}Dashboard User - SICUTI{% endblock %}
 
 {% block page_title %}Dashboard Pegawai{% endblock %}
 
@@ -76,34 +76,19 @@
 
     <!-- Quota Card -->
     <div class="card p-6">
-        <div class="flex items-center justify-between mb-4">
-            <h4 class="text-lg font-medium text-gray-900">Kuota Cuti</h4>
-            <div class="flex items-center text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
-                <i class="fas fa-info-circle mr-1"></i>
-                <span>Kuota berkurang saat cuti disetujui</span>
-            </div>
-        </div>
+        <h4 class="text-lg font-medium text-gray-900 mb-4">Kuota Cuti</h4>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="text-center">
                 <p class="text-sm text-gray-500">Sisa Cuti N-2</p>
                 <p class="text-2xl font-bold text-blue-600">{{ user.sisa_cuti_n2 }}</p>
-                <p class="text-xs text-gray-400">hari</p>
             </div>
             <div class="text-center">
                 <p class="text-sm text-gray-500">Sisa Cuti N-1</p>
                 <p class="text-2xl font-bold text-blue-600">{{ user.sisa_cuti_n1 }}</p>
-                <p class="text-xs text-gray-400">hari</p>
             </div>
             <div class="text-center">
                 <p class="text-sm text-gray-500">Sisa Cuti Tahun Ini</p>
                 <p class="text-2xl font-bold text-green-600">{{ user.sisa_cuti_n }}</p>
-                <p class="text-xs text-gray-400">hari</p>
-            </div>
-        </div>
-        <div class="mt-3 pt-3 border-t border-gray-200">
-            <div class="flex justify-between items-center text-sm">
-                <span class="text-gray-600">Total Tersedia:</span>
-                <span class="font-semibold text-gray-900">{{ user.sisa_cuti_n2 + user.sisa_cuti_n1 + user.sisa_cuti_n }} hari</span>
             </div>
         </div>
     </div>
