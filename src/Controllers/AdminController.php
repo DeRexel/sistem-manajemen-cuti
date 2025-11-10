@@ -4,7 +4,6 @@ namespace App\Controllers;
 use App\Models\Cuti;
 use App\Models\Employee;
 use App\Models\Pejabat;
-use App\Services\CutiQuotaService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -13,13 +12,11 @@ class AdminController {
     private $cutiModel;
     private $employeeModel;
     private $pejabatModel;
-    private $quotaService;
 
     public function __construct() {
         $this->cutiModel = new Cuti();
         $this->employeeModel = new Employee();
         $this->pejabatModel = new Pejabat();
-        $this->quotaService = new CutiQuotaService();
     }
 
     private function getTwig(Request $request): Twig {
@@ -49,33 +46,41 @@ class AdminController {
     }
 
     public function updateStatus(Request $request, Response $response, $args) {
+        $response = $response->withHeader('Content-Type', 'application/json');
         $cutiId = $args['id'];
         $data = $request->getParsedBody();
         $newStatus = $data['status'];
         
-        $this->cutiModel->updateStatus($cutiId, $newStatus, $_SESSION['user_id']);
+        // Basic status update
+        $this->cutiModel->updateStatus($cutiId, $newStatus);
         
-        // If approved, update employee's leave quota
-        if ($newStatus === 'selesai' && isset($data['persetujuan_atasan']) && $data['persetujuan_atasan'] === 'disetujui') {
-            $cuti = $this->cutiModel->findById($cutiId);
-            $this->employeeModel->updateSisaCuti($cuti['employee_id'], $cuti['jenis_cuti'], $cuti['lama_hari']);
+        // Update status message based on new status
+        if ($newStatus === 'proses') {
+            $this->cutiModel->updateStatusMessage($cutiId, 'Menunggu keputusan atasan');
+        } elseif ($newStatus === 'selesai') {
+            $this->cutiModel->updateStatusMessage($cutiId, 'Cuti telah disetujui');
         }
         
-        // Update approval decision
-        if (isset($data['persetujuan_atasan'])) {
-            $this->cutiModel->updatePersetujuanAtasan($cutiId, $data['persetujuan_atasan'], $data['catatan_atasan'] ?? null);
-            
-            // Kurangi kuota jika disetujui
-            if ($data['persetujuan_atasan'] === 'disetujui') {
-                $cuti = $this->cutiModel->findById($cutiId);
-                $this->quotaService->deductQuota($cuti['employee_id'], $cuti['lama_hari'], $cuti['jenis_cuti']);
+        // Handle cancel with reason
+        if ($newStatus === 'cancel') {
+            if (isset($data['alasan_admin'])) {
+                $this->cutiModel->updateCancelInfo($cutiId, $data['alasan_admin'], 'admin');
+            } elseif (isset($data['alasan_atasan'])) {
+                $this->cutiModel->updateCancelInfo($cutiId, $data['alasan_atasan'], 'atasan');
             }
         }
         
-        return $response->withJson(['success' => true]);
+        // Handle approval decision
+        if (isset($data['persetujuan_atasan'])) {
+            $this->cutiModel->updatePersetujuanAtasan($cutiId, $data['persetujuan_atasan'], $data['catatan_atasan'] ?? null);
+        }
+        
+        $response->getBody()->write('OK');
+        return $response;
     }
 
     public function uploadAtasanSigned(Request $request, Response $response, $args) {
+        $response = $response->withHeader('Content-Type', 'application/json');
         $cutiId = $args['id'];
         $uploadedFiles = $request->getUploadedFiles();
         
@@ -88,11 +93,13 @@ class AdminController {
                 
                 $this->cutiModel->updateSignedAtasanPath($cutiId, $fileName);
                 
-                return $response->withJson(['success' => true]);
+                $response->getBody()->write(json_encode(['success' => true]));
+                return $response;
             }
         }
         
-        return $response->withJson(['success' => false]);
+        $response->getBody()->write(json_encode(['success' => false]));
+        return $response;
     }
 
     public function employeeList(Request $request, Response $response) {
@@ -130,7 +137,6 @@ class AdminController {
         
         return $response->withHeader('Location', '/admin/pejabat')->withStatus(302);
     }
-<<<<<<< HEAD
 
     public function getDetail(Request $request, Response $response, $args) {
         $cutiId = $args['id'];
@@ -193,33 +199,6 @@ class AdminController {
         return $response->withHeader('Content-Type', 'application/pdf');
     }
 
-    public function previewBerkas(Request $request, Response $response, $args) {
-        $cutiId = $args['id'];
-        $cuti = $this->cutiModel->findById($cutiId);
-        
-        if (!$cuti || !$cuti['berkas_tambahan_path']) {
-            return $response->withStatus(404);
-        }
-        
-        $filePath = __DIR__ . '/../../public/uploads/berkas_tambahan/' . $cuti['berkas_tambahan_path'];
-        
-        if (!file_exists($filePath)) {
-            return $response->withStatus(404);
-        }
-        
-        $fileContent = file_get_contents($filePath);
-        $extension = pathinfo($cuti['berkas_tambahan_path'], PATHINFO_EXTENSION);
-        
-        if (strtolower($extension) === 'pdf') {
-            $contentType = 'application/pdf';
-        } else {
-            $contentType = 'image/' . strtolower($extension);
-        }
-        
-        $response->getBody()->write($fileContent);
-        return $response->withHeader('Content-Type', $contentType);
-    }
-
     public function historyList(Request $request, Response $response) {
         $params = $request->getQueryParams();
         $yearStart = $params['year_start'] ?? null;
@@ -258,7 +237,7 @@ class AdminController {
 
     private function exportHistoryToPDF($response, $cutiList, $yearStart, $yearEnd) {
         $pdf = new \TCPDF('L', 'mm', 'A4', true, 'UTF-8');
-        $pdf->SetCreator('SICLE');
+        $pdf->SetCreator('SICUTI');
         $pdf->SetTitle('Laporan Riwayat Cuti ' . $yearStart . '-' . $yearEnd);
         $pdf->SetMargins(15, 15, 15);
         $pdf->AddPage();
@@ -341,6 +320,4 @@ class AdminController {
             ->withHeader('Content-Type', 'text/csv')
             ->withHeader('Content-Disposition', 'attachment; filename="' . $fileName . '"');
     }
-=======
->>>>>>> parent of 53b33dd (Basic Function)
 }

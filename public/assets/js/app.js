@@ -29,56 +29,34 @@ function handleFileUpload(inputId, cutiId, type) {
             ? `/user/cuti/upload-signed/${cutiId}`
             : `/admin/cuti/upload-atasan/${cutiId}`;
         
-        fetch(endpoint, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('File berhasil diupload');
-                location.reload();
-            } else {
-                alert('Gagal upload file');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan');
-        });
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', endpoint, true);
+        xhr.onload = function() {
+            location.reload();
+        };
+        xhr.onerror = function() {
+            location.reload();
+        };
+        xhr.send(formData);
     }
 }
 
 // Status update handler
 function updateStatus(cutiId, status, persetujuan = null, catatan = null) {
-    const formData = new FormData();
-    formData.append('status', status);
+    let body = `status=${status}`;
+    if (persetujuan) body += `&persetujuan_atasan=${persetujuan}`;
+    if (catatan) body += `&catatan_atasan=${encodeURIComponent(catatan)}`;
     
-    if (persetujuan) {
-        formData.append('persetujuan_atasan', persetujuan);
-    }
-    
-    if (catatan) {
-        formData.append('catatan_atasan', catatan);
-    }
-    
-    fetch(`/admin/cuti/update-status/${cutiId}`, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Status berhasil diupdate');
-            location.reload();
-        } else {
-            alert('Gagal update status');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Terjadi kesalahan');
-    });
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `/admin/cuti/${cutiId}/status`, true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.onload = function() {
+        location.reload();
+    };
+    xhr.onerror = function() {
+        location.reload();
+    };
+    xhr.send(body);
 }
 
 // Initialize date inputs

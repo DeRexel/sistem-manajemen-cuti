@@ -12,6 +12,13 @@
     'cancel': 'Dibatalkan'
 } %}
 
-<span class="status-badge {{ status_classes[status] }}">
-    {{ status_labels[status] }}
-</span>
+<div class="status-container">
+    <span class="status-badge {{ status_classes[status] }}">
+        {{ status_labels[status] }}
+    </span>
+    {% if status_message %}
+        <div class="status-message text-sm text-gray-600 mt-1">
+            {{ status_message }}
+        </div>
+    {% endif %}
+</div>
